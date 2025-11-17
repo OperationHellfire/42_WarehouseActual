@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using G42Warehouse;
 using Xunit;
@@ -8,40 +8,60 @@ namespace G42Warehouse.Tests
     public class EmployeeTests
     {
         [Fact]
-        public void Constructor_ValidData_AddsToExtentAndSetsProperties()
+        public void DeliveryDriver_Constructor_ValidData_AddsToExtentAndSetsProperties()
         {
+            Employee.Load("non_existing_employees.xml");
+
             var employmentDate = DateTime.Now.AddYears(-2);
             int beforeCount = Employee.Extent.Count;
 
-            var emp = new Employee(
+            var emp = new DeliveryDriver(
                 "John Doe",
                 employmentDate,
                 2000,
-                EmployeeCategory.WarehouseManager,
-                WorkerSpecialization.None
-            );
+                DriverLicenceType.B);
 
             Assert.Equal("John Doe", emp.Name);
             Assert.Equal(2000, emp.BaseSalary);
-            Assert.Equal(EmployeeCategory.WarehouseManager, emp.Category);
-            Assert.Equal(WorkerSpecialization.None, emp.Specialization);
+            Assert.Equal(employmentDate, emp.EmploymentDate);
+            Assert.Equal(ExperienceLevelType.Junior, emp.ExperienceLevel);
+            Assert.Equal(DriverLicenceType.B, emp.TypeOfDriversLicence);
+
             Assert.True(Employee.Extent.Contains(emp));
             Assert.Equal(beforeCount + 1, Employee.Extent.Count);
         }
-        
+
         [Fact]
-        public void ExperienceLevel_DefaultsToJunior_WhenNotSpecified()
+        public void DeliveryDriver_ExperienceLevel_DefaultsToJunior_WhenNotSpecified()
         {
-            var emp = new Employee("Test", DateTime.Now.AddYears(-1), 1000);
+            var emp = new DeliveryDriver(
+                "Test",
+                DateTime.Now.AddYears(-1),
+                1000,
+                DriverLicenceType.C);
+
             Assert.Equal(ExperienceLevelType.Junior, emp.ExperienceLevel);
         }
 
         [Fact]
-        public void ExperienceLevel_CanBeSetToSenior()
+        public void WarehouseManager_DefaultsToSeniorExperience()
         {
-            var emp = new Employee("Test", DateTime.Now.AddYears(-1), 1000,
-                EmployeeCategory.Worker,
-                WorkerSpecialization.None,
+            var mgr = new WarehouseManager(
+                "Manager",
+                DateTime.Now.AddYears(-5),
+                3000);
+
+            Assert.Equal(ExperienceLevelType.Senior, mgr.ExperienceLevel);
+        }
+
+        [Fact]
+        public void DeliveryDriver_ExperienceLevel_CanBeSetToSenior()
+        {
+            var emp = new DeliveryDriver(
+                "Test",
+                DateTime.Now.AddYears(-1),
+                1000,
+                DriverLicenceType.C1,
                 ExperienceLevelType.Senior);
 
             Assert.Equal(ExperienceLevelType.Senior, emp.ExperienceLevel);
@@ -53,7 +73,11 @@ namespace G42Warehouse.Tests
             var employmentDate = DateTime.Now.AddYears(-1);
 
             Assert.Throws<ArgumentException>(() =>
-                new Employee("", employmentDate, 1500)
+                new DeliveryDriver(
+                    "",
+                    employmentDate,
+                    1500,
+                    DriverLicenceType.B)
             );
         }
 
@@ -63,7 +87,11 @@ namespace G42Warehouse.Tests
             var futureDate = DateTime.Now.AddDays(1);
 
             Assert.Throws<ArgumentException>(() =>
-                new Employee("Test", futureDate, 1500)
+                new DeliveryDriver(
+                    "Test",
+                    futureDate,
+                    1500,
+                    DriverLicenceType.B)
             );
         }
 
@@ -73,11 +101,19 @@ namespace G42Warehouse.Tests
             var employmentDate = DateTime.Now.AddYears(-1);
 
             Assert.Throws<ArgumentException>(() =>
-                new Employee("Test", employmentDate, 0)
+                new DeliveryDriver(
+                    "Test",
+                    employmentDate,
+                    0,
+                    DriverLicenceType.B)
             );
 
             Assert.Throws<ArgumentException>(() =>
-                new Employee("Test", employmentDate, -10)
+                new DeliveryDriver(
+                    "Test",
+                    employmentDate,
+                    -10,
+                    DriverLicenceType.B)
             );
         }
 
@@ -86,7 +122,12 @@ namespace G42Warehouse.Tests
         {
             Employee.YearlyGrowth = 0.20;
             var employmentDate = DateTime.Now.AddYears(-3);
-            var emp = new Employee("Test", employmentDate, 1000);
+
+            var emp = new DeliveryDriver(
+                "Test",
+                employmentDate,
+                1000,
+                DriverLicenceType.B);
 
             int years = emp.YearsSinceEmployment;
             double expectedSalary = 1000 * (1 + years * Employee.YearlyGrowth);
@@ -103,10 +144,16 @@ namespace G42Warehouse.Tests
             {
                 Employee.Load(path);
 
-                var e1 = new Employee("Alice", DateTime.Now.AddYears(-1), 1500);
-                var e2 = new Employee("Bob", DateTime.Now.AddYears(-2), 2000,
-                                      EmployeeCategory.Worker,
-                                      WorkerSpecialization.DeliveryDriver);
+                var e1 = new DeliveryDriver(
+                    "Alice",
+                    DateTime.Now.AddYears(-1),
+                    1500,
+                    DriverLicenceType.B);
+
+                var e2 = new WarehouseManager(
+                    "Bob",
+                    DateTime.Now.AddYears(-2),
+                    2000);
 
                 Employee.Save(path);
 
@@ -127,15 +174,18 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Extent_IsEncapsulated_ModifyingCopyDoesNotAffectExtent()
         {
-            Employee.Load("non_existing_employees.xml"); // clears extent
+            Employee.Load("non_existing_employees.xml");
 
-            var e1 = new Employee("Temp Emp", DateTime.Now.AddYears(-1), 1000);
+            var e1 = new WarehouseManager(
+                "Temp Emp",
+                DateTime.Now.AddYears(-1),
+                1000);
 
             var copy = new System.Collections.Generic.List<Employee>(Employee.Extent);
             copy.Clear();
 
             Assert.Equal(1, Employee.Extent.Count);
-            Assert.True(Employee.Extent.Contains(e1));
+            Assert.Contains(e1, Employee.Extent);
         }
     }
 }
