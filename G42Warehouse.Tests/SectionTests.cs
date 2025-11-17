@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using G42Warehouse;
 using Xunit;
@@ -8,25 +8,32 @@ namespace G42Warehouse.Tests
     public class SectionTests
     {
         [Fact]
-        public void Constructor_ValidData_AddsToExtentAndSetsEnums()
+        public void HazardousSection_Constructor_ValidData_AddsToExtentAndSetsProperties()
         {
+            Section.Load("non_existing_sections.xml");
+
             int beforeCount = Section.Extent.Count;
 
-            var section = new Section(
+            var section = new HazardousMaterialsSection(
                 "HazMat A",
                 "North Wing",
                 250.0,
-                true,
-                SectionType.HazardousMaterials,
-                SectionStatus.Active
+                hasBackupGenerator: true,
+                hazardTypes: new[] { HazardType.Flammable, HazardType.Corrosive },
+                hasVentilationSystem: true,
+                status: SectionStatus.Active
             );
 
             Assert.Equal("HazMat A", section.Name);
             Assert.Equal("North Wing", section.Location);
             Assert.Equal(250.0, section.Area);
             Assert.True(section.HasBackupGenerator);
-            Assert.Equal(SectionType.HazardousMaterials, section.Type);
             Assert.Equal(SectionStatus.Active, section.Status);
+            Assert.Equal(2, section.HazardTypes.Count);
+            Assert.Contains(HazardType.Flammable, section.HazardTypes);
+            Assert.Contains(HazardType.Corrosive, section.HazardTypes);
+            Assert.True(section.HasVentilationSystem);
+
             Assert.True(Section.Extent.Contains(section));
             Assert.Equal(beforeCount + 1, Section.Extent.Count);
         }
@@ -35,7 +42,13 @@ namespace G42Warehouse.Tests
         public void Name_Empty_ThrowsArgumentException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Section("", "Loc", 10, false)
+                new RefrigeratedSection(
+                    "",
+                    "Loc",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
             );
         }
 
@@ -43,7 +56,13 @@ namespace G42Warehouse.Tests
         public void Location_Empty_ThrowsArgumentException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Section("Sec1", "", 10, false)
+                new RefrigeratedSection(
+                    "Sec1",
+                    "",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
             );
         }
 
@@ -51,18 +70,36 @@ namespace G42Warehouse.Tests
         public void Area_NotPositive_ThrowsArgumentException()
         {
             Assert.Throws<ArgumentException>(() =>
-                new Section("Sec1", "Loc", 0, false)
+                new RefrigeratedSection(
+                    "Sec1",
+                    "Loc",
+                    0,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
             );
 
             Assert.Throws<ArgumentException>(() =>
-                new Section("Sec1", "Loc", -5, false)
+                new RefrigeratedSection(
+                    "Sec1",
+                    "Loc",
+                    -5,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
             );
         }
 
         [Fact]
         public void Temperature_InvalidRange_ThrowsArgumentException()
         {
-            var section = new Section("Cold Room", "B2", 50, true);
+            var section = new RefrigeratedSection(
+                "Cold Room",
+                "B2",
+                50,
+                hasBackupGenerator: true,
+                minOperationalTemperature: -10,
+                maxOperationalTemperature: 5);
 
             Assert.Throws<ArgumentException>(() => section.Temperature = -100);
             Assert.Throws<ArgumentException>(() => section.Temperature = 100);
@@ -71,7 +108,13 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Humidity_InvalidRange_ThrowsArgumentException()
         {
-            var section = new Section("Ambient 1", "A1", 100, false);
+            var section = new RefrigeratedSection(
+                "Ambient 1",
+                "A1",
+                100,
+                hasBackupGenerator: false,
+                minOperationalTemperature: -10,
+                maxOperationalTemperature: 5);
 
             Assert.Throws<ArgumentException>(() => section.Humidity = -1);
             Assert.Throws<ArgumentException>(() => section.Humidity = 101);
@@ -80,7 +123,13 @@ namespace G42Warehouse.Tests
         [Fact]
         public void TemperatureAndHumidity_Optional_AndIsColdStorageWorks()
         {
-            var section = new Section("Fridge", "C1", 30, true);
+            var section = new RefrigeratedSection(
+                "Fridge",
+                "C1",
+                30,
+                hasBackupGenerator: true,
+                minOperationalTemperature: -10,
+                maxOperationalTemperature: 5);
 
             section.Temperature = null;
             Assert.False(section.IsColdStorage);
@@ -94,24 +143,34 @@ namespace G42Warehouse.Tests
         }
 
         [Fact]
-        public void AddForbiddenMaterial_Valid_AddsToCollection()
+        public void AddRestrictedMaterial_Valid_AddsToCollection()
         {
-            var section = new Section("HazMat A", "D1", 150, true);
+            var section = new HazardousMaterialsSection(
+                "HazMat A",
+                "D1",
+                150,
+                hasBackupGenerator: true,
+                hazardTypes: new[] { HazardType.Flammable });
 
-            section.AddForbiddenMaterial("Explosives");
-            section.AddForbiddenMaterial("Flammable Liquids");
+            section.AddRestrictedMaterial("Explosives");
+            section.AddRestrictedMaterial("Flammable Liquids");
 
-            Assert.Equal(2, section.ForbiddenMaterials.Count);
-            Assert.Contains("Explosives", section.ForbiddenMaterials);
-            Assert.Contains("Flammable Liquids", section.ForbiddenMaterials);
+            Assert.Equal(2, section.RestrictedMaterials.Count);
+            Assert.Contains("Explosives", section.RestrictedMaterials);
+            Assert.Contains("Flammable Liquids", section.RestrictedMaterials);
         }
 
         [Fact]
-        public void AddForbiddenMaterial_Empty_ThrowsArgumentException()
+        public void AddRestrictedMaterial_Empty_ThrowsArgumentException()
         {
-            var section = new Section("HazMat A", "D1", 150, true);
+            var section = new HazardousMaterialsSection(
+                "HazMat A",
+                "D1",
+                150,
+                hasBackupGenerator: true,
+                hazardTypes: new[] { HazardType.Flammable });
 
-            Assert.Throws<ArgumentException>(() => section.AddForbiddenMaterial(""));
+            Assert.Throws<ArgumentException>(() => section.AddRestrictedMaterial(""));
         }
 
         [Fact]
@@ -123,14 +182,25 @@ namespace G42Warehouse.Tests
             {
                 Section.Load(path);
 
-                var s1 = new Section("Ambient 1", "A1", 100, false,
-                                     SectionType.AmbientStorage, SectionStatus.Active);
+                var s1 = new HazardousMaterialsSection(
+                    "HazMat A",
+                    "A1",
+                    100,
+                    hasBackupGenerator: false,
+                    hazardTypes: new[] { HazardType.Corrosive },
+                    status: SectionStatus.Active);
                 s1.Temperature = 20;
 
-                var s2 = new Section("Fridge 1", "C1", 40, true,
-                                     SectionType.RefrigeratedStorage, SectionStatus.Maintenance);
+                var s2 = new RefrigeratedSection(
+                    "Fridge 1",
+                    "C1",
+                    40,
+                    hasBackupGenerator: true,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5,
+                    status: SectionStatus.Maintenance);
                 s2.Temperature = 2;
-                s2.AddForbiddenMaterial("Biological Waste");
+                s2.AddRestrictedMaterial("Biological Waste");
 
                 Section.Save(path);
 
@@ -138,7 +208,7 @@ namespace G42Warehouse.Tests
 
                 Assert.True(loaded);
                 Assert.Equal(2, Section.Extent.Count);
-                Assert.Contains(Section.Extent, s => s.Name == "Ambient 1");
+                Assert.Contains(Section.Extent, s => s.Name == "HazMat A");
                 Assert.Contains(Section.Extent, s => s.Name == "Fridge 1");
             }
             finally
@@ -151,9 +221,15 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Extent_IsEncapsulated_ModifyingCopyDoesNotAffectExtent()
         {
-            Section.Load("non_existing_sections.xml"); // clears extent
+            Section.Load("non_existing_sections.xml");
 
-            var s = new Section("Test", "T1", 10, false);
+            var s = new RefrigeratedSection(
+                "Test",
+                "T1",
+                10,
+                hasBackupGenerator: false,
+                minOperationalTemperature: -10,
+                maxOperationalTemperature: 5);
 
             var copy = new System.Collections.Generic.List<Section>(Section.Extent);
             copy.Clear();
@@ -163,3 +239,4 @@ namespace G42Warehouse.Tests
         }
     }
 }
+
