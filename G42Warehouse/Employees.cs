@@ -1,44 +1,42 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 
 namespace G42Warehouse
 {
-    public enum EmployeeCategory
-    {
-        WarehouseManager,
-        Worker
-    }
-
-    public enum WorkerSpecialization
-    {
-        None,
-        DeliveryDriver,
-        MachineOperator
-    }
-
     public enum ExperienceLevelType
     {
         Junior = 1,
         Senior = 2
     }
+    
+    public enum DriverLicenceType
+    {
+        B,
+        C,
+        C1
+    }
 
+    
     [DataContract]
-    public class Employee
+    [KnownType(typeof(WarehouseManager))]
+    [KnownType(typeof(DeliveryDriver))]
+    [KnownType(typeof(MachineOperator))]
+    public abstract class Employee
     {
         private static List<Employee> _extent = new();
 
         [IgnoreDataMember]
         public static IReadOnlyList<Employee> Extent => _extent.AsReadOnly();
 
-        private static void AddToExtent(Employee e)
+        protected static void AddToExtent(Employee e)
         {
             if (e == null) throw new ArgumentNullException(nameof(e));
             _extent.Add(e);
         }
 
-        private string _name;
+        private string _name = string.Empty;
 
         [DataMember]
         public string Name
@@ -82,6 +80,9 @@ namespace G42Warehouse
             }
         }
 
+        [DataMember]
+        public ExperienceLevelType ExperienceLevel { get; set; }
+
         [IgnoreDataMember]
         public int YearsSinceEmployment =>
             (int)((DateTime.Now - EmploymentDate).TotalDays / 365);
@@ -89,34 +90,21 @@ namespace G42Warehouse
         [IgnoreDataMember]
         public double Salary => BaseSalary * (1 + YearsSinceEmployment * YearlyGrowth);
 
-        [DataMember]
-        public ExperienceLevelType ExperienceLevel { get; set; }
-
-        [DataMember]
-        public EmployeeCategory Category { get; private set; }
-
-        [DataMember]
-        public WorkerSpecialization Specialization { get; private set; }
-
-        public Employee(
+        protected Employee(
             string name,
             DateTime employmentDate,
             double baseSalary,
-            EmployeeCategory category = EmployeeCategory.Worker,
-            WorkerSpecialization specialization = WorkerSpecialization.None,
-            ExperienceLevelType experienceLevel = ExperienceLevelType.Junior)
+            ExperienceLevelType experienceLevel)
         {
             Name = name;
             EmploymentDate = employmentDate;
             BaseSalary = baseSalary;
-            Category = category;
-            Specialization = specialization;
             ExperienceLevel = experienceLevel;
 
             AddToExtent(this);
         }
 
-        public Employee()
+        protected Employee()
         {
         }
 
@@ -148,6 +136,103 @@ namespace G42Warehouse
                 _extent.Clear();
                 return false;
             }
+        }
+    }
+    
+    [DataContract]
+    public class WarehouseManager : Employee
+    {
+        public WarehouseManager(
+            string name,
+            DateTime employmentDate,
+            double baseSalary,
+            ExperienceLevelType experienceLevel = ExperienceLevelType.Senior)
+            : base(name, employmentDate, baseSalary, experienceLevel)
+        {
+        }
+
+        public WarehouseManager()
+        {
+        }
+    }
+
+    [DataContract]
+    [KnownType(typeof(DeliveryDriver))]
+    [KnownType(typeof(MachineOperator))]
+    public abstract class Worker : Employee
+    {
+        protected Worker(
+            string name,
+            DateTime employmentDate,
+            double baseSalary,
+            ExperienceLevelType experienceLevel = ExperienceLevelType.Junior)
+            : base(name, employmentDate, baseSalary, experienceLevel)
+        {
+        }
+
+        protected Worker()
+        {
+        }
+        
+        public virtual void ReportInventory()
+        {
+            Console.WriteLine($"{Name} reported inventory.");
+        }
+    }
+
+    [DataContract]
+    public class DeliveryDriver : Worker
+    {
+        [DataMember]
+        public DriverLicenceType TypeOfDriversLicence { get; private set; }
+
+        public DeliveryDriver(
+            string name,
+            DateTime employmentDate,
+            double baseSalary,
+            DriverLicenceType licenceType,
+            ExperienceLevelType experienceLevel = ExperienceLevelType.Junior)
+            : base(name, employmentDate, baseSalary, experienceLevel)
+        {
+            TypeOfDriversLicence = licenceType;
+        }
+
+        public DeliveryDriver()
+        {
+        }
+    }
+
+
+    [DataContract]
+    public class MachineOperator : Worker
+    {
+        private string _serialCode = string.Empty;
+
+        [DataMember]
+        public string SerialCode
+        {
+            get => _serialCode;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    throw new ArgumentException("SerialCode cannot be empty.");
+                _serialCode = value;
+            }
+        }
+
+        public MachineOperator(
+            string name,
+            DateTime employmentDate,
+            double baseSalary,
+            string serialCode,
+            ExperienceLevelType experienceLevel = ExperienceLevelType.Junior)
+            : base(name, employmentDate, baseSalary, experienceLevel)
+        {
+            SerialCode = serialCode;
+        }
+
+        public MachineOperator()
+        {
         }
     }
 }
