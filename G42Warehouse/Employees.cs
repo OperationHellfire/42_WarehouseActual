@@ -20,6 +20,7 @@ namespace G42Warehouse
 
     
     [DataContract]
+    [KnownType(typeof(Worker))]
     [KnownType(typeof(WarehouseManager))]
     [KnownType(typeof(DeliveryDriver))]
     [KnownType(typeof(MachineOperator))]
@@ -157,11 +158,9 @@ namespace G42Warehouse
     }
 
     [DataContract]
-    [KnownType(typeof(DeliveryDriver))]
-    [KnownType(typeof(MachineOperator))]
-    public abstract class Worker : Employee
+    public class Worker : Employee
     {
-        protected Worker(
+        public Worker(
             string name,
             DateTime employmentDate,
             double baseSalary,
