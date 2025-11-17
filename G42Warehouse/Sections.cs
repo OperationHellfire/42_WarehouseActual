@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -12,29 +12,30 @@ namespace G42Warehouse
         Closed
     }
 
-    public enum SectionType
+    public enum HazardType
     {
-        HazardousMaterials,
-        AmbientStorage,
-        RefrigeratedStorage,
-        Other
+        Flammable,
+        Corrosive,
+        Toxic
     }
 
     [DataContract]
-    public class Section
+    [KnownType(typeof(HazardousMaterialsSection))]
+    [KnownType(typeof(RefrigeratedSection))]
+    public abstract class Section
     {
         private static List<Section> _extent = new();
 
         [IgnoreDataMember]
         public static IReadOnlyList<Section> Extent => _extent.AsReadOnly();
 
-        private static void AddToExtent(Section s)
+        protected static void AddToExtent(Section s)
         {
             if (s == null) throw new ArgumentNullException(nameof(s));
             _extent.Add(s);
         }
 
-        private string _name;
+        private string _name = string.Empty;
 
         [DataMember]
         public string Name
@@ -48,7 +49,7 @@ namespace G42Warehouse
             }
         }
 
-        private string _location;
+        private string _location = string.Empty;
 
         [DataMember]
         public string Location
@@ -108,18 +109,18 @@ namespace G42Warehouse
         }
 
         [DataMember]
-        private List<string> _forbiddenMaterials = new();
+        private List<string> _restrictedMaterials = new();
 
         [IgnoreDataMember]
-        public IReadOnlyList<string> ForbiddenMaterials
-            => (_forbiddenMaterials ??= new List<string>()).AsReadOnly();
+        public IReadOnlyList<string> RestrictedMaterials =>
+            (_restrictedMaterials ??= new List<string>()).AsReadOnly();
 
-        public void AddForbiddenMaterial(string material)
+        public void AddRestrictedMaterial(string material)
         {
             if (string.IsNullOrWhiteSpace(material))
                 throw new ArgumentException("Material cannot be empty.");
 
-            (_forbiddenMaterials ??= new List<string>()).Add(material);
+            (_restrictedMaterials ??= new List<string>()).Add(material);
         }
 
         public static int MaxSections { get; set; } = 200;
@@ -130,28 +131,23 @@ namespace G42Warehouse
         [DataMember]
         public SectionStatus Status { get; set; }
 
-        [DataMember]
-        public SectionType Type { get; set; }
-
-        public Section(
+        protected Section(
             string name,
             string location,
             double area,
             bool hasBackupGenerator,
-            SectionType type = SectionType.AmbientStorage,
             SectionStatus status = SectionStatus.Active)
         {
             Name = name;
             Location = location;
             Area = area;
             HasBackupGenerator = hasBackupGenerator;
-            Type = type;
             Status = status;
 
             AddToExtent(this);
         }
 
-        public Section()
+        protected Section()
         {
         }
 
@@ -183,6 +179,94 @@ namespace G42Warehouse
                 _extent.Clear();
                 return false;
             }
+        }
+    }
+
+    [DataContract]
+    public class HazardousMaterialsSection : Section
+    {
+        [DataMember]
+        private List<HazardType> _hazardTypes = new();
+
+        [IgnoreDataMember]
+        public IReadOnlyList<HazardType> HazardTypes => _hazardTypes.AsReadOnly();
+
+        [DataMember]
+        public bool? HasVentilationSystem { get; set; }
+
+        public HazardousMaterialsSection(
+            string name,
+            string location,
+            double area,
+            bool hasBackupGenerator,
+            IEnumerable<HazardType> hazardTypes,
+            bool? hasVentilationSystem = null,
+            SectionStatus status = SectionStatus.Active)
+            : base(name, location, area, hasBackupGenerator, status)
+        {
+            if (hazardTypes == null)
+                throw new ArgumentNullException(nameof(hazardTypes));
+
+            _hazardTypes = new List<HazardType>(hazardTypes);
+            if (_hazardTypes.Count == 0)
+                throw new ArgumentException("At least one hazard type is required.");
+
+            HasVentilationSystem = hasVentilationSystem;
+        }
+
+        public HazardousMaterialsSection()
+        {
+        }
+    }
+
+    [DataContract]
+    public class RefrigeratedSection : Section
+    {
+        private double _minOperationalTemperature;
+        private double _maxOperationalTemperature;
+        
+        [DataMember]
+        public double MinOperationalTemperature
+        {
+            get => _minOperationalTemperature;
+            set
+            {
+                if (value < -80 || value > 30)
+                    throw new ArgumentException("MinOperationalTemperature out of range.");
+                _minOperationalTemperature = value;
+            }
+        }
+
+        [DataMember]
+        public double MaxOperationalTemperature
+        {
+            get => _maxOperationalTemperature;
+            set
+            {
+                if (value < -80 || value > 30)
+                    throw new ArgumentException("MaxOperationalTemperature out of range.");
+                if (value < MinOperationalTemperature)
+                    throw new ArgumentException("MaxOperationalTemperature cannot be lower than minimum.");
+                _maxOperationalTemperature = value;
+            }
+        }
+        
+        public RefrigeratedSection(
+            string name,
+            string location,
+            double area,
+            bool hasBackupGenerator,
+            double minOperationalTemperature,
+            double maxOperationalTemperature,
+            SectionStatus status = SectionStatus.Active)
+            : base(name, location, area, hasBackupGenerator, status)
+        {
+            MinOperationalTemperature = minOperationalTemperature;
+            MaxOperationalTemperature = maxOperationalTemperature;
+        }
+
+        public RefrigeratedSection()
+        {
         }
     }
 }
