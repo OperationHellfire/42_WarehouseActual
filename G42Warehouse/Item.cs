@@ -82,7 +82,7 @@ namespace G42Warehouse
                 _stock = value;
             }
         }
-        
+
         [DataMember]
         private double _weight;
         public double Weight
@@ -158,7 +158,13 @@ namespace G42Warehouse
             }
         }
 
-        public Item(string name, bool fragile, ItemCategory category, int initialstock = 0, double weight = 1.0, double buyingprice = 0, double sellingprice = 0)
+        public Item(string name,
+            bool fragile,
+            ItemCategory category,
+            int initialstock = 0,
+            double weight = 1.0,
+            double buyingprice = 0,
+            double sellingprice = 0)
         {
             Name = name;
             Fragile = fragile;
@@ -171,7 +177,15 @@ namespace G42Warehouse
             addextent(this);
         }
 
-        public Item(string name, bool fragile, ItemCategory category, ItemHazardType hazard, int flamm, int initialstock = 0, double weight = 1.0, double buyingprice = 0, double sellingprice = 0)
+        public Item(string name,
+            bool fragile,
+            ItemCategory category,
+            ItemHazardType hazard,
+            int flamm,
+            int initialstock = 0,
+            double weight = 1.0,
+            double buyingprice = 0,
+            double sellingprice = 0)
         {
             Name = name;
             Fragile = fragile;
@@ -188,12 +202,14 @@ namespace G42Warehouse
 
         private static void addextent(Item item)
         {
-            if(item == null)
+            if (item == null)
             {
                 throw new ArgumentNullException("Item is null.");
             }
             _extent.Add(item);
         }
+
+        //Extent helpers
 
         public static void Save(string path = "item_extent.xml")
         {
@@ -225,6 +241,9 @@ namespace G42Warehouse
             }
         }
     }
+
+
+    //Extent helpers
 
     [DataContract]
     public class PerishableItem : Item

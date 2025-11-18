@@ -165,6 +165,7 @@ namespace G42Warehouse
 
 
 
+        //Extent helpers
         public static void Save(string path = "shelf_extent.xml")
         {
             var serializer = new DataContractSerializer(typeof(List<Shelf>));
@@ -194,6 +195,8 @@ namespace G42Warehouse
                 return false;
             }
         }
+
+        //Extent helpers
 
         public override string ToString()
         {
