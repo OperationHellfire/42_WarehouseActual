@@ -49,6 +49,27 @@ namespace G42Warehouse
             get => _extentmachine;
         }
 
+        [DataMember]
+        private List<Order> _extentorder = [];
+        public List<Order> ExtentOrder
+        {
+            get => _extentorder;
+        }
+
+        [DataMember]
+        private List<Delivery> _extentDelivery = [];
+        public List<Delivery> ExtentDelivery
+        {
+            get => _extentDelivery;
+        }
+
+        [DataMember]
+        private List<Customer> _extentcustomer = [];
+        public List<Customer> ExtentCustomer
+        {
+            get => _extentcustomer;
+        }
+
 
         public static void Save(string path = "Extent.xml")
         {

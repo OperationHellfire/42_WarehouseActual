@@ -16,12 +16,10 @@ namespace G42Warehouse
     }
 
     [DataContract]
+    [KnownType(typeof(Transporter))]
+    [KnownType(typeof(Lifter))]
     public abstract class Machine
     {
-        [DataMember]
-        private static List<Machine> _extent = [];
-        public IReadOnlyList<Machine> Extent => _extent.AsReadOnly();
-
         [DataMember]
         private MachineStatus _status;
         public MachineStatus Status
@@ -52,10 +50,10 @@ namespace G42Warehouse
         {
             Status = status;
             LastMaintanenceDate = lastmain;
-            addextent(this);
+            addExtent(this);
         }
 
-        private static void addextent(Machine machine)
+        private static void addExtent(Machine machine)
         {
             if (machine == null)
             {
@@ -66,6 +64,7 @@ namespace G42Warehouse
 
     }
 
+    [DataContract]
     public class Transporter : Machine
     {
         private double _load;
@@ -81,8 +80,45 @@ namespace G42Warehouse
                 _load = value;
             }
         }
-        public Transporter(MachineStatus status, DateTime lastmain) : base(status, lastmain)
+
+        private double _speed;
+        public double Speed
         {
+            get => _speed;
+            set
+            {
+                if (value < 0 || value > 12.5)
+                {
+                    throw new ArgumentOutOfRangeException("Speed has to be between 0-12.5 KM/H!");
+                }
+            }
+            }
+        public Transporter(MachineStatus status, DateTime lastmain, double load, double speed) : base(status, lastmain)
+        {
+            Load = load;
+            Speed = speed;
+        }
+    }
+
+    [DataContract]
+    public class Lifter : Machine
+    {
+        private double _load;
+        public double Load
+        {
+            get => _load;
+            set
+            {
+                if (value < 0 || value > 435)
+                {
+                    throw new ArgumentOutOfRangeException("Load has to be between 0-235 KG!");
+                }
+                _load = value;
+            }
+        }
+        public Lifter(MachineStatus status, DateTime lastmain, double load) : base(status, lastmain)
+        {
+            Load = load;
         }
     }
 
