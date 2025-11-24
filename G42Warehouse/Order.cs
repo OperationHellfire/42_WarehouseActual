@@ -41,7 +41,7 @@ namespace G42Warehouse
             {
                 if(value > DateTime.Now)
                 {
-                    throw new ArgumentException("Order Date can't be in the future!");
+                    throw new ArgumentException("Order Date cant be in the future!");
                 }
                 _orderdate = value;
             }
