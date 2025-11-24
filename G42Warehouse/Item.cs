@@ -37,15 +37,6 @@ namespace G42Warehouse
     [KnownType(typeof(PerishableItem))]
     public class Item
     {
-
-        //EXTENT
-        [DataMember]
-        private static List<Item> _extent = new List<Item>();
-        private static IReadOnlyList<Item> Extent
-        {
-            get => _extent.AsReadOnly();
-        }
-        //EXTENT_END
         [DataMember]
         private string _name;
         public string Name
@@ -209,39 +200,12 @@ namespace G42Warehouse
             {
                 throw new ArgumentNullException("Item is null.");
             }
-            _extent.Add(item);
+            ExtentManager.Instance.ExtentItemList.Add(item);
         }
-
-        //Extent helpers
-
-        public static void Save(string path = "item_extent.xml")
+        public override string ToString()
         {
-            var serializer = new DataContractSerializer(typeof(List<Item>));
-            using var stream = File.Create(path);
-            serializer.WriteObject(stream, _extent);
-        }
+            return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{HazardType}\n Biological Hazard:{BiologicalHazard} \n Flamm Level: {FlammabilityLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n]";
 
-        public static bool Load(string path = "item_extent.xml")
-        {
-            if (!File.Exists(path))
-            {
-                _extent.Clear();
-                return false;
-            }
-
-            var serializer = new DataContractSerializer(typeof(List<Item>));
-            using var stream = File.OpenRead(path);
-
-            try
-            {
-                _extent = (List<Item>?)serializer.ReadObject(stream) ?? [];
-                return true;
-            }
-            catch
-            {
-                _extent.Clear();
-                return false;
-            }
         }
     }
 
@@ -290,6 +254,11 @@ namespace G42Warehouse
         {
             Expiration = expiration;
             StorageTemperature = storageTemp;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString().TrimEnd() + $" Expiration: {Expiration}\n Storage Temperature: {StorageTemperature}\n]";
         }
     }
 

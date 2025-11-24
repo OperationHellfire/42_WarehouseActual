@@ -10,22 +10,23 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Shelf_Constructor_ValidData_ExtentProperty()
         {
-            Shelf.Load("nonexistingpath.xml");
+            ExtentManager.Load("nonexistingpath.xml");
 
-            int curcount = Shelf.Extent.Count;
+            var arr = ExtentManager.Instance.ExtentShelf;
+            int curcount = arr.Count;
 
             Shelf testy = new Shelf(ShelfType.Pallet_Rack, 25.1);
 
             Assert.Equal(ShelfType.Pallet_Rack, testy.Type);
             Assert.Equal(25.1, testy.MaximumWeight);
-            Assert.Contains(testy, Shelf.Extent);
-            Assert.Single(Shelf.Extent);
+            Assert.Contains(testy, arr);
+            Assert.Single(arr);
         }
 
         [Fact]
         public void Shelf_AddConsisting_NullThrowException()
         {
-            Shelf.Load("Snoremimimimi.xml");
+            ExtentManager.Load("nonexistingpath.xml");
 
             Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1);
 
@@ -38,7 +39,7 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Shelf_RemoveConsisting_NullThrowException()
         {
-            Shelf.Load("Snoremimimimi.xml");
+            ExtentManager.Load("nonexistingpath.xml");
 
             Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1);
 
@@ -51,21 +52,22 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Shelf_RemoveNonConsistingFromConsisting_DoesNothing()
         {
-            Shelf.Load("Snoremimimimi.xml");
+            ExtentManager.Load("nonexistingpath.xml");
 
             Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1);
             Shelf c3 = new Shelf(ShelfType.Solid_Rack, 15.1);
 
-            int curcount = Shelf.Extent.Count;
+            var arr = ExtentManager.Instance.ExtentShelf;
+            int curcount = arr.Count;
 
             c3.removeConsisting(c2);
-            Assert.Equal(curcount, Shelf.Extent.Count);
+            Assert.Equal(curcount, arr.Count);
         }
 
         [Fact]
         public void Shelf_NonPositiveWeight_Throws()
         {
-            Shelf.Load("Ae.xml");
+            ExtentManager.Load("nonexistingpath.xml");
 
             Assert.Throws<ArgumentOutOfRangeException>(() => { new Shelf(ShelfType.Pallet_Rack, -1); });
         }

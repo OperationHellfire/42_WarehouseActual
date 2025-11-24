@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using G42Warehouse;
 using Xunit;
 
@@ -7,12 +8,17 @@ namespace G42Warehouse.Tests
 {
     public class SectionTests
     {
+
+        public SectionTests() {
+            ExtentManager.Reset();
+        }
         [Fact]
         public void HazardousSection_Constructor_ValidData_AddsToExtentAndSetsProperties()
         {
-            Section.Load("non_existing_sections.xml");
-
-            int beforeCount = Section.Extent.Count;
+            ExtentManager.Load();
+            var instance = ExtentManager.Instance;
+            var sectionarr = instance.ExtentSection;
+            int beforeCount = sectionarr.Count;
 
             var section = new HazardousMaterialsSection(
                 "HazMat A",
@@ -34,8 +40,8 @@ namespace G42Warehouse.Tests
             Assert.Contains(HazardType.Corrosive, section.HazardTypes);
             Assert.True(section.HasVentilationSystem);
 
-            Assert.True(Section.Extent.Contains(section));
-            Assert.Equal(beforeCount + 1, Section.Extent.Count);
+            Assert.True(sectionarr.Contains(section));
+            Assert.Equal(beforeCount + 1, sectionarr.Count);
         }
 
         [Fact]
@@ -174,13 +180,13 @@ namespace G42Warehouse.Tests
         }
 
         [Fact]
-        public void SaveAndLoad_PreservesExtent()
+        public async Task SaveAndLoad_PreservesExtent()
         {
             string path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + "_sections.xml");
 
             try
             {
-                Section.Load(path);
+                ExtentManager.Reset(); 
 
                 var s1 = new HazardousMaterialsSection(
                     "HazMat A",
@@ -202,14 +208,15 @@ namespace G42Warehouse.Tests
                 s2.Temperature = 2;
                 s2.AddRestrictedMaterial("Biological Waste");
 
-                Section.Save(path);
+                ExtentManager.Save(path);
 
-                bool loaded = Section.Load(path);
+                bool loaded = ExtentManager.Load(path);
+                 var sectionextent = ExtentManager.Instance.ExtentSection;
 
                 Assert.True(loaded);
-                Assert.Equal(2, Section.Extent.Count);
-                Assert.Contains(Section.Extent, s => s.Name == "HazMat A");
-                Assert.Contains(Section.Extent, s => s.Name == "Fridge 1");
+                Assert.Equal(2, sectionextent.Count);
+                Assert.Contains(sectionextent, s => s.Name == "HazMat A");
+                Assert.Contains(sectionextent, s => s.Name == "Fridge 1");
             }
             finally
             {
@@ -221,7 +228,7 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Extent_IsEncapsulated_ModifyingCopyDoesNotAffectExtent()
         {
-            Section.Load("non_existing_sections.xml");
+            ExtentManager.Load("non_existing_sections.xml");
 
             var s = new RefrigeratedSection(
                 "Test",
@@ -231,11 +238,13 @@ namespace G42Warehouse.Tests
                 minOperationalTemperature: -10,
                 maxOperationalTemperature: 5);
 
-            var copy = new System.Collections.Generic.List<Section>(Section.Extent);
+            var sectionarr = ExtentManager.Instance.ExtentSection;
+
+            var copy = new System.Collections.Generic.List<Section>(sectionarr);
             copy.Clear();
 
-            Assert.Equal(1, Section.Extent.Count);
-            Assert.True(Section.Extent.Contains(s));
+            Assert.Equal(1, sectionarr.Count);
+            Assert.True(sectionarr.Contains(s));
         }
     }
 }

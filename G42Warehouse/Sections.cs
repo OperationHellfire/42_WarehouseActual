@@ -24,15 +24,11 @@ namespace G42Warehouse
     [KnownType(typeof(RefrigeratedSection))]
     public abstract class Section
     {
-        private static List<Section> _extent = new();
-
-        [IgnoreDataMember]
-        public static IReadOnlyList<Section> Extent => _extent.AsReadOnly();
 
         protected static void AddToExtent(Section s)
         {
             if (s == null) throw new ArgumentNullException(nameof(s));
-            _extent.Add(s);
+            ExtentManager.Instance.ExtentSection.Add(s);
         }
 
         private string _name = string.Empty;
@@ -149,36 +145,6 @@ namespace G42Warehouse
 
         protected Section()
         {
-        }
-
-        public static void Save(string path = "section_extent.xml")
-        {
-            var serializer = new DataContractSerializer(typeof(List<Section>));
-            using var stream = File.Create(path);
-            serializer.WriteObject(stream, _extent);
-        }
-
-        public static bool Load(string path = "section_extent.xml")
-        {
-            if (!File.Exists(path))
-            {
-                _extent.Clear();
-                return false;
-            }
-
-            var serializer = new DataContractSerializer(typeof(List<Section>));
-            using var stream = File.OpenRead(path);
-
-            try
-            {
-                _extent = (List<Section>?)serializer.ReadObject(stream) ?? new List<Section>();
-                return true;
-            }
-            catch
-            {
-                _extent.Clear();
-                return false;
-            }
         }
     }
 

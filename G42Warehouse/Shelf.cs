@@ -16,14 +16,6 @@ namespace G42Warehouse
     public class Shelf
     {
 
-        // EXTENT
-        [DataMember]
-        private static List<Shelf> _extent = new List<Shelf>();
-
-        public static IReadOnlyList<Shelf> Extent => _extent.AsReadOnly();
-
-        //EXTENT_END
-
         [DataMember]
         private List<Shelf> _consistingshelves = new List<Shelf>();
 
@@ -92,7 +84,7 @@ namespace G42Warehouse
             {
                 throw new ArgumentNullException("Shelf is null, cannot add...");
             }
-            _extent.Add(shelf);
+            ExtentManager.Instance.ExtentShelf.Add(shelf);
         }
 
         /*public void addItem(Item item, int amount = 1)
@@ -162,41 +154,6 @@ namespace G42Warehouse
             Inventory[item] -= amount;
         }*/
 
-
-
-
-        //Extent helpers
-        public static void Save(string path = "shelf_extent.xml")
-        {
-            var serializer = new DataContractSerializer(typeof(List<Shelf>));
-            using var stream = File.Create(path);
-            serializer.WriteObject(stream, _extent);
-        }
-
-        public static bool Load(string path = "shelf_extent.xml")
-        {
-            if (!File.Exists(path))
-            {
-                _extent.Clear();
-                return false;
-            }
-
-            var serializer = new DataContractSerializer(typeof(List<Shelf>));
-            using var stream = File.OpenRead(path);
-
-            try
-            {
-                _extent = (List<Shelf>?)serializer.ReadObject(stream) ?? [];
-                return true;
-            }
-            catch
-            {
-                _extent.Clear();
-                return false;
-            }
-        }
-
-        //Extent helpers
 
         public override string ToString()
         {

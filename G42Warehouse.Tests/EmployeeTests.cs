@@ -7,13 +7,15 @@ namespace G42Warehouse.Tests
 {
     public class EmployeeTests
     {
+
         [Fact]
         public void DeliveryDriver_Constructor_ValidData_AddsToExtentAndSetsProperties()
         {
-            Employee.Load("non_existing_employees.xml");
+            ExtentManager.Load("non_existing_employees.xml");
+            var employeearr = ExtentManager.Instance.ExtentEmployee;
 
             var employmentDate = DateTime.Now.AddYears(-2);
-            int beforeCount = Employee.Extent.Count;
+            int beforeCount = employeearr.Count;
 
             var emp = new DeliveryDriver(
                 "John Doe",
@@ -27,8 +29,9 @@ namespace G42Warehouse.Tests
             Assert.Equal(ExperienceLevelType.Junior, emp.ExperienceLevel);
             Assert.Equal(DriverLicenceType.B, emp.TypeOfDriversLicence);
 
-            Assert.True(Employee.Extent.Contains(emp));
-            Assert.Equal(beforeCount + 1, Employee.Extent.Count);
+            Assert.True(employeearr.Contains(emp));
+            Assert.Equal(beforeCount + 1, employeearr.Count);
+            ExtentManager.Remove("non_existing_employees.xml");
         }
 
         [Fact]
@@ -142,7 +145,7 @@ namespace G42Warehouse.Tests
 
             try
             {
-                Employee.Load(path);
+                ExtentManager.Load(path);
 
                 var e1 = new DeliveryDriver(
                     "Alice",
@@ -155,14 +158,15 @@ namespace G42Warehouse.Tests
                     DateTime.Now.AddYears(-2),
                     2000);
 
-                Employee.Save(path);
+                ExtentManager.Save(path);
 
-                bool loaded = Employee.Load(path);
+                bool loaded = ExtentManager.Load(path);
+                var employeearr = ExtentManager.Instance.ExtentEmployee;
 
                 Assert.True(loaded);
-                Assert.Equal(2, Employee.Extent.Count);
-                Assert.Contains(Employee.Extent, e => e.Name == "Alice");
-                Assert.Contains(Employee.Extent, e => e.Name == "Bob");
+                Assert.Equal(2, employeearr.Count);
+                Assert.Contains(employeearr, e => e.Name == "Alice");
+                Assert.Contains(employeearr, e => e.Name == "Bob");
             }
             finally
             {
@@ -174,18 +178,20 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Extent_IsEncapsulated_ModifyingCopyDoesNotAffectExtent()
         {
-            Employee.Load("non_existing_employees.xml");
+            ExtentManager.Load("non_existing_employees.xml");
 
             var e1 = new WarehouseManager(
                 "Temp Emp",
                 DateTime.Now.AddYears(-1),
                 1000);
 
-            var copy = new System.Collections.Generic.List<Employee>(Employee.Extent);
+            var copy = new System.Collections.Generic.List<Employee>(ExtentManager.Instance.ExtentEmployee);
             copy.Clear();
 
-            Assert.Equal(1, Employee.Extent.Count);
-            Assert.Contains(e1, Employee.Extent);
+            var employeearr = ExtentManager.Instance.ExtentEmployee;
+
+            Assert.Equal(1, employeearr.Count);
+            Assert.Contains(e1, employeearr);
         }
     }
 }
