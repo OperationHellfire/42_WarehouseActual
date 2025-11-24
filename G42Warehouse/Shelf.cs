@@ -95,7 +95,7 @@ namespace G42Warehouse
             _extent.Add(shelf);
         }
 
-        public void addItem(Item item, int amount = 1)
+        /*public void addItem(Item item, int amount = 1)
         {
             if (item == null)
             {
@@ -125,9 +125,9 @@ namespace G42Warehouse
             item.ShelfTracker += amount;
 
             Inventory[item] = Inventory.GetValueOrDefault(item, 0) + amount;
-        }
+        }*/
 
-        public void removeItem(Item item, int amount = 1)
+       /* public void removeItem(Item item, int amount = 1)
         {
             if (item == null)
             {
@@ -160,7 +160,7 @@ namespace G42Warehouse
             }
 
             Inventory[item] -= amount;
-        }
+        }*/
 
 
 
@@ -206,12 +206,12 @@ namespace G42Warehouse
                  a += shelf.Type + " ";
             }
 
-            string b = string.Empty;
+            /*string b = string.Empty;
             foreach(var item in Inventory)
             {
                 b += item.Key.Name + " amount: " + item.Value + " | ";
-            }
-            return $"Type: {Type} Maximum Weight: {MaximumWeight} Consisting Shelves: {a} Current Inventory: {b}";
+            }*/
+            return $"Type: {Type} Maximum Weight: {MaximumWeight} Consisting Shelves: {a}"; //" Current Inventory: {b}";
         }
 
 

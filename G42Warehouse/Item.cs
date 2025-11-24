@@ -21,8 +21,17 @@ namespace G42Warehouse
     {
         Toxins = 0,
         Irritants = 1,
-        Sensitizers= 2,
+        Sensitizers = 2,
         Asphyxiants = 3
+    }
+
+    public enum BiologicalHazardType
+    {
+        Bacteria = 0,
+        Virus = 1,
+        Parasite = 2,
+        BiologicalFluid = 3,
+        Waste= 4
     }
     [DataContract]
     [KnownType(typeof(PerishableItem))]
@@ -126,13 +135,13 @@ namespace G42Warehouse
                 _sellingprice = value;
             }
         }
-        [DataMember]
+        /*[DataMember]
         private int _shelftracker;
         public int ShelfTracker
         {
             get => _shelftracker;
             set => _shelftracker = value;
-        }
+        }*/
 
         [DataMember(IsRequired = false)]
         private ItemHazardType? _hazardtype;
@@ -158,30 +167,23 @@ namespace G42Warehouse
             }
         }
 
-        public Item(string name,
-            bool fragile,
-            ItemCategory category,
-            int initialstock = 0,
-            double weight = 1.0,
-            double buyingprice = 0,
-            double sellingprice = 0)
+        [DataMember(IsRequired = false)]
+        private BiologicalHazardType? _biohazard;
+
+        public BiologicalHazardType? BiologicalHazard
         {
-            Name = name;
-            Fragile = fragile;
-            Category = category;
-            Stock = initialstock;
-            Weight = weight;
-            BuyingPrice = buyingprice;
-            SellingPrice = sellingprice;
-            ShelfTracker = 0;
-            addextent(this);
+            get => _biohazard;
+            set => _biohazard = value;
         }
+
+
 
         public Item(string name,
             bool fragile,
             ItemCategory category,
-            ItemHazardType hazard,
-            int flamm,
+            ItemHazardType? hazard,
+            BiologicalHazardType? biohazard,
+            int? flamm,
             int initialstock = 0,
             double weight = 1.0,
             double buyingprice = 0,
@@ -190,13 +192,14 @@ namespace G42Warehouse
             Name = name;
             Fragile = fragile;
             Category = category;
+            HazardType = hazard;
+            BiologicalHazard = biohazard;
+            FlammabilityLevel = flamm;
             Stock = initialstock;
             Weight = weight;
             BuyingPrice = buyingprice;
             SellingPrice = sellingprice;
-            ShelfTracker = 0;
-            HazardType = hazard;
-            FlammabilityLevel = flamm;
+            //ShelfTracker = 0;
             addextent(this);
         }
 
@@ -272,18 +275,21 @@ namespace G42Warehouse
             set => _storageTemperature = value;
         }
 
-        public PerishableItem(string name, bool fragile, ItemCategory category, DateTime expiration, double storage, int initialstock = 0, double weight = 1, double buyingprice = 0, double sellingprice = 0)
-            : base(name, fragile, category, initialstock, weight, buyingprice, sellingprice)
+        public PerishableItem(string name,
+            bool fragile,
+            ItemCategory category,
+            ItemHazardType? hazard,
+            BiologicalHazardType? biohazard,
+            int? flamm,
+            DateTime expiration,
+            double storageTemp,
+            int initialstock = 0,
+            double weight = 1.0,
+            double buyingprice = 0,
+            double sellingprice = 0) : base(name, fragile, category, hazard, biohazard, flamm, initialstock, weight, buyingprice)
         {
             Expiration = expiration;
-            StorageTemperature = storage;
-        }
-
-        public PerishableItem(string name, bool fragile, ItemCategory category, ItemHazardType hazard, int flamm, DateTime expiration, double storage, int initialstock = 0, double weight = 1.0, double buyingprice = 0, double sellingprice = 0)
-    : base(name, fragile, category, hazard, flamm, initialstock, weight, buyingprice, sellingprice)
-        {
-            Expiration = expiration;
-            StorageTemperature = storage;
+            StorageTemperature = storageTemp;
         }
     }
 

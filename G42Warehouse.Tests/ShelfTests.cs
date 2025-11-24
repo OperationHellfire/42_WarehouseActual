@@ -70,7 +70,7 @@ namespace G42Warehouse.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => { new Shelf(ShelfType.Pallet_Rack, -1); });
         }
 
-        [Fact]
+        /*[Fact]
         public void Shelf_AddingItemBeyondStockRange_Throws()
         {
             Shelf.Load("ae.png");
@@ -121,6 +121,6 @@ namespace G42Warehouse.Tests
                     c1.removeItem(pencil);
                 }
             });
-        }
+        }*/
     }
 }
