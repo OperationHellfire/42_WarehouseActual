@@ -34,7 +34,7 @@ namespace G42Warehouse.Tests
             Assert.Equal(ItemCategory.RawMaterial, item.Category);
             Assert.Null(item.HazardType);
 
-            Assert.Equal(10, item.Stock);
+            Assert.Equal(10, item.StockQuantity);
             Assert.Equal(0.5, item.Weight);
             Assert.Equal(1.0, item.BuyingPrice);
             Assert.Equal(2.0, item.SellingPrice);

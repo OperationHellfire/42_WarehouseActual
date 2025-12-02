@@ -31,7 +31,7 @@ namespace G42Warehouse
         Virus = 1,
         Parasite = 2,
         BiologicalFluid = 3,
-        Waste= 4
+        Waste = 4
     }
     [DataContract]
     [KnownType(typeof(PerishableItem))]
@@ -68,18 +68,18 @@ namespace G42Warehouse
         }
 
         [DataMember]
-        private int _stock;
+        private int _stockQuantity;
 
-        public int Stock
+        public int StockQuantity
         {
-            get => _stock;
+            get => _stockQuantity;
             private set
             {
                 if (value < 0)
                 {
                     throw new ArgumentException("Stock can't be negative.");
                 }
-                _stock = value;
+                _stockQuantity = value;
             }
         }
 
@@ -159,12 +159,12 @@ namespace G42Warehouse
         }
 
         [DataMember(IsRequired = false)]
-        private BiologicalHazardType? _biohazard;
+        private BiologicalHazardType? _biohazardType;
 
-        public BiologicalHazardType? BiologicalHazard
+        public BiologicalHazardType? BiologicalHazardType
         {
-            get => _biohazard;
-            set => _biohazard = value;
+            get => _biohazardType;
+            set => _biohazardType = value;
         }
 
 
@@ -184,9 +184,9 @@ namespace G42Warehouse
             Fragile = fragile;
             Category = category;
             HazardType = hazard;
-            BiologicalHazard = biohazard;
+            BiologicalHazardType = biohazard;
             FlammabilityLevel = flamm;
-            Stock = initialstock;
+            StockQuantity = initialstock;
             Weight = weight;
             BuyingPrice = buyingprice;
             SellingPrice = sellingprice;
@@ -204,7 +204,7 @@ namespace G42Warehouse
         }
         public override string ToString()
         {
-            return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{HazardType}\n Biological Hazard:{BiologicalHazard} \n Flamm Level: {FlammabilityLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n]";
+            return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{HazardType}\n Biological Hazard:{BiologicalHazardType} \n Flamm Level: {FlammabilityLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n]";
 
         }
     }
@@ -216,17 +216,17 @@ namespace G42Warehouse
     public class PerishableItem : Item
     {
         [DataMember]
-        private DateTime _expiration;
-        public DateTime Expiration
+        private DateTime _expirationDate;
+        public DateTime ExpirationDate
         {
-            get => _expiration;
+            get => _expirationDate;
             set
             {
                 if (value < DateTime.Now)
                 {
                     throw new ArgumentOutOfRangeException("Expiration date can't be before " + DateTime.Now.ToString());
                 }
-                _expiration = value;
+                _expirationDate = value;
             }
         }
 
@@ -252,14 +252,14 @@ namespace G42Warehouse
             double buyingprice = 0,
             double sellingprice = 0) : base(name, fragile, category, hazard, biohazard, flamm, initialstock, weight, buyingprice)
         {
-            Expiration = expiration;
+            ExpirationDate = expiration;
             StorageTemperature = storageTemp;
         }
 
         public override string ToString()
         {
-            return base.ToString().TrimEnd() + $" Expiration: {Expiration}\n Storage Temperature: {StorageTemperature}\n]";
+            return base.ToString().TrimEnd() + $" Expiration: {ExpirationDate}\n Storage Temperature: {StorageTemperature}\n]";
         }
     }
 
- }
+}

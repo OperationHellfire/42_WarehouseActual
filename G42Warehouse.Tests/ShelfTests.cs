@@ -17,8 +17,8 @@ namespace G42Warehouse.Tests
 
             Shelf testy = new Shelf(ShelfType.Pallet_Rack, 25.1);
 
-            Assert.Equal(ShelfType.Pallet_Rack, testy.Type);
-            Assert.Equal(25.1, testy.MaximumWeight);
+            Assert.Equal(ShelfType.Pallet_Rack, testy.TypeOfShelf);
+            Assert.Equal(25.1, testy.MaximumWeightCapacity);
             Assert.Contains(testy, arr);
             Assert.Single(arr);
         }
