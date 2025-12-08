@@ -94,15 +94,44 @@ namespace G42Warehouse
             }
         }
 
+        [DataMember]
+        private Order _order;
+
+        public Order AssociatedOrder
+        {
+            get => _order;  
+            private set => _order = value;
+        }
 
 
-        public Delivery(int trackingNumber,DateTime date,DeliveryStatus status,Address deliveryaddress, DateTime? expected, DateTime actual) {
+        [DataMember]
+        private HashSet<DeliveryDriver> _drivers;
+
+        public HashSet<DeliveryDriver> AssignedDrivers
+        {
+            get => _drivers;
+            private set
+            {
+                if (value.Count == 0)
+                {
+                    throw new ArgumentException("The set must contain one delivery driver at minimum!");
+                }
+
+                _drivers = value;
+            }
+        }
+
+
+
+        public Delivery(int trackingNumber, DateTime date,DeliveryStatus status,Address deliveryaddress, DateTime? expected, DateTime actual, Order order, HashSet<DeliveryDriver> drivers) {
             TrackingNumber = trackingNumber;
             Date = date;
             Status = status;
             Address = deliveryaddress;
             _expectedarrival = expected;
             _actualarrivaldate = actual;
+            AssociatedOrder = order;
+            AssignedDrivers = drivers;
             addExtent(this);
         }
 
@@ -113,6 +142,31 @@ namespace G42Warehouse
                 throw new ArgumentNullException("Delivery is null.");
             }
             ExtentManager.Instance.ExtentDelivery.Add(delivery);
+        }
+
+        public void addDeliveryDriver(DeliveryDriver driver)
+        {
+            if (driver == null) throw new ArgumentNullException("Target driver is null!");
+
+            if(!AssignedDrivers.Contains(driver))
+            {
+                AssignedDrivers.Add(driver);
+                driver.addDelivery(this);
+            }
+        }
+
+        public void removeDeliveryDriver(DeliveryDriver driver)
+        {
+            if (driver == null) throw new ArgumentNullException("Target driver is null!");
+
+            if(AssignedDrivers.Contains(driver) && AssignedDrivers.Count > 1)
+            {
+                AssignedDrivers.Remove(driver);
+                driver.removeDelivery(this);
+            } else
+            {
+                throw new ArgumentException("Cannot remove the only driver assigned to this delivery.");
+            }
         }
 
     }

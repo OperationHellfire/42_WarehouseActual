@@ -15,7 +15,14 @@ namespace G42Warehouse.Tests
             var arr = ExtentManager.Instance.ExtentShelf;
             int curcount = arr.Count;
 
-            Shelf testy = new Shelf(ShelfType.Pallet_Rack, 25.1);
+            Shelf testy = new Shelf(ShelfType.Pallet_Rack, 25.1, new RefrigeratedSection(
+                    "Sec1",
+                    "sad",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
+            );
 
             Assert.Equal(ShelfType.Pallet_Rack, testy.TypeOfShelf);
             Assert.Equal(25.1, testy.MaximumWeightCapacity);
@@ -28,7 +35,14 @@ namespace G42Warehouse.Tests
         {
             ExtentManager.Load("nonexistingpath.xml");
 
-            Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1);
+            Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1, new RefrigeratedSection(
+                    "Sec1",
+                    "sad",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 20)
+            );
 
             Assert.Throws<ArgumentNullException>(() =>
             {
@@ -41,7 +55,14 @@ namespace G42Warehouse.Tests
         {
             ExtentManager.Load("nonexistingpath.xml");
 
-            Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1);
+            Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1, new RefrigeratedSection(
+                    "Sec1",
+                    "sad",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
+            );
 
             Assert.Throws<ArgumentNullException>(() =>
             {
@@ -54,8 +75,22 @@ namespace G42Warehouse.Tests
         {
             ExtentManager.Load("nonexistingpath.xml");
 
-            Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1);
-            Shelf c3 = new Shelf(ShelfType.Solid_Rack, 15.1);
+            Shelf c2 = new Shelf(ShelfType.Pallet_Rack, 25.1, new RefrigeratedSection(
+                    "Sec1",
+                    "sad",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 20)
+            );
+            Shelf c3 = new Shelf(ShelfType.Solid_Rack, 15.1, new RefrigeratedSection(
+                    "Sec1",
+                    "sad",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
+            );
 
             var arr = ExtentManager.Instance.ExtentShelf;
             int curcount = arr.Count;
@@ -69,60 +104,15 @@ namespace G42Warehouse.Tests
         {
             ExtentManager.Load("nonexistingpath.xml");
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => { new Shelf(ShelfType.Pallet_Rack, -1); });
-        }
-
-        /*[Fact]
-        public void Shelf_AddingItemBeyondStockRange_Throws()
-        {
-            Shelf.Load("ae.png");
-            Item.Load("fsdk.pnnng");
-            Item pencil = new Item("Pencil", false, ItemCategory.RawMaterial, 5, 1.5, 20.0, 20.0);
-            Shelf c1 = new Shelf(ShelfType.Pallet_Rack, 25.4);
-            Assert.Throws<ArgumentException>(() => { c1.addItem(pencil, 265); });
-        }
-
-        [Fact]
-        public void Shelf_AddingItemOneByOne_Throws()
-        {
-            Shelf.Load("ae.png");
-            Item.Load("fsdk.pnnng");
-            Item pencil = new Item("Pencil", false, ItemCategory.RawMaterial, 5, 1.5, 20.0, 20.0);
-            Shelf c1 = new Shelf(ShelfType.Pallet_Rack, 25.4);
-            Assert.Throws<ArgumentException>(() =>
-            {
-                for (int i = 0; i < 7; i++)
-                {
-                    c1.addItem(pencil);
-                }
+            Assert.Throws<ArgumentOutOfRangeException>(() => { new Shelf(ShelfType.Pallet_Rack, -1, new RefrigeratedSection(
+                    "Sec1",
+                    "sad",
+                    10,
+                    hasBackupGenerator: false,
+                    minOperationalTemperature: -10,
+                    maxOperationalTemperature: 5)
+            );
             });
         }
-
-        [Fact]
-        public void Shelf_RemovingItemBeyondStockRange_Throws()
-        {
-            Shelf.Load("ae.png");
-            Item.Load("fsdk.pnnng");
-            Item pencil = new Item("Pencil", false, ItemCategory.RawMaterial, 5, 1.5, 20.0, 20.0);
-            Shelf c1 = new Shelf(ShelfType.Pallet_Rack, 25.4);
-            c1.addItem(pencil, 5);
-            Assert.Throws<ArgumentException>(() => { c1.removeItem(pencil, 265); });
-        }
-
-        [Fact]
-        public void Shelf_RemovingItemOneByOne_Throws()
-        {
-            Shelf.Load("ae.png");
-            Item.Load("fsdk.pnnng");
-            Item pencil = new Item("Pencil", false, ItemCategory.RawMaterial, 5, 1.5, 20.0, 20.0);
-            Shelf c1 = new Shelf(ShelfType.Pallet_Rack, 25.4);
-            c1.addItem(pencil, 5);
-            Assert.Throws<ArgumentException>(() => {
-                for (int i = 0; i < 7; i++)
-                {
-                    c1.removeItem(pencil);
-                }
-            });
-        }*/
     }
 }

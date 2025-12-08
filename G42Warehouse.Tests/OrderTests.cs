@@ -18,8 +18,10 @@ namespace G42Warehouse.Tests
             int beforeCount = orders.Count;
 
             var orderDate = DateTime.Now.AddMinutes(-5);
+            Dictionary<Item,int> aee = new Dictionary<Item,int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
-            var order = new Order(orderDate);
+            var order = new Order(orderDate,new Customer("J","j","j"), aee);
 
             Assert.Equal(orderDate, order.OrderDate);
             Assert.Equal(PaymentStatus.Non_Paid, order.PaymentStatus);
@@ -33,7 +35,11 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Order_OrderDate_SetToFuture_ThrowsArgumentException()
         {
-            var order = new Order(DateTime.Now);
+            Dictionary<Item, int> aee = new Dictionary<Item, int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+
+            var order = new Order(DateTime.Now, new Customer("J", "j", "j"), aee);
+
 
             Assert.Throws<ArgumentException>(() =>
             {
@@ -44,7 +50,11 @@ namespace G42Warehouse.Tests
         [Fact]
         public void Order_StatusAndPayment_CanBeUpdated()
         {
-            var order = new Order(DateTime.Now.AddMinutes(-10));
+
+            Dictionary<Item, int> aee = new Dictionary<Item, int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+
+            var order = new Order(DateTime.Now.AddMinutes(-10), new Customer("J", "j", "j"), aee);
             order.PaymentStatus = PaymentStatus.Paid;
             order.PreparationStatus = PreparationStatus.Ready;
             order.PaymentMethod = PaymentMethod.CreditCard;

@@ -31,6 +31,8 @@ namespace G42Warehouse.Tests
             var date = DateTime.Now.AddHours(-1);
             var expected = DateTime.Now.AddHours(3);
             var actual = DateTime.Now; // <= Now inside setter
+            Dictionary<Item, int> aee = new Dictionary<Item, int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             var delivery = new Delivery(
                 trackingNumber: 123,
@@ -38,7 +40,9 @@ namespace G42Warehouse.Tests
                 status: DeliveryStatus.Pending,
                 deliveryaddress: address,
                 expected: expected,
-                actual: actual);
+                actual: actual,
+                                    new Order(DateTime.Now, new Customer("j", "j", "j"), aee),
+                    new HashSet<DeliveryDriver> { new DeliveryDriver() });
 
             Assert.Equal(123, delivery.TrackingNumber);
             Assert.Equal(date, delivery.Date);
@@ -56,6 +60,9 @@ namespace G42Warehouse.Tests
             var address = CreateAddress();
             var now = DateTime.Now;
 
+            Dictionary<Item, int> aee = new Dictionary<Item, int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+
             Assert.Throws<ArgumentException>(() =>
                 new Delivery(
                     trackingNumber: -1,
@@ -63,7 +70,9 @@ namespace G42Warehouse.Tests
                     status: DeliveryStatus.Pending,
                     deliveryaddress: address,
                     expected: null,
-                    actual: now));
+                    actual: now,
+                    new Order(DateTime.Now, new Customer("j", "j", "j"), aee),
+                    new HashSet<DeliveryDriver> { new DeliveryDriver()}));
         }
 
         [Fact]
@@ -71,13 +80,18 @@ namespace G42Warehouse.Tests
         {
             var address = CreateAddress();
 
+            Dictionary<Item, int> aee = new Dictionary<Item, int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+
             var delivery = new Delivery(
                 trackingNumber: 1,
                 date: DateTime.Now,
                 status: DeliveryStatus.Pending,
                 deliveryaddress: address,
                 expected: null,
-                actual: DateTime.Now);
+                actual: DateTime.Now,
+                    new Order(DateTime.Now, new Customer("j", "j", "j"), aee),
+                    new HashSet<DeliveryDriver> { new DeliveryDriver() });
 
             Assert.Throws<ArgumentException>(() =>
             {
@@ -90,13 +104,18 @@ namespace G42Warehouse.Tests
         {
             var address = CreateAddress();
 
+            Dictionary<Item, int> aee = new Dictionary<Item, int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+
             var delivery = new Delivery(
                 trackingNumber: 1,
                 date: DateTime.Now,
                 status: DeliveryStatus.InTransit,
                 deliveryaddress: address,
                 expected: DateTime.Now.AddDays(1),
-                actual: DateTime.Now);
+                actual: DateTime.Now,
+                    new Order(DateTime.Now, new Customer("j", "j", "j"), aee),
+                    new HashSet<DeliveryDriver> { new DeliveryDriver() });
 
             Assert.Throws<ArgumentException>(() =>
             {
@@ -111,6 +130,9 @@ namespace G42Warehouse.Tests
             var now = DateTime.Now;
             var futureActual = DateTime.Now.AddDays(1);
 
+            Dictionary<Item, int> aee = new Dictionary<Item, int>();
+            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+
             Assert.Throws<ArgumentException>(() =>
                 new Delivery(
                     trackingNumber: 1,
@@ -118,7 +140,9 @@ namespace G42Warehouse.Tests
                     status: DeliveryStatus.Pending,
                     deliveryaddress: address,
                     expected: null,
-                    actual: futureActual));
+                    actual: futureActual,
+                    new Order(DateTime.Now, new Customer("j", "j", "j"), aee),
+                    new HashSet<DeliveryDriver> { new DeliveryDriver() }));
         }
     }
 }

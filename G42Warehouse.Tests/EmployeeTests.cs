@@ -21,6 +21,7 @@ namespace G42Warehouse.Tests
                 "John Doe",
                 employmentDate,
                 2000,
+                new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                 DriverLicenceType.B);
 
             Assert.Equal("John Doe", emp.Name);
@@ -30,7 +31,7 @@ namespace G42Warehouse.Tests
             Assert.Equal(DriverLicenceType.B, emp.TypeOfDriversLicence);
 
             Assert.True(employeearr.Contains(emp));
-            Assert.Equal(beforeCount + 1, employeearr.Count);
+            Assert.Equal(beforeCount + 2, employeearr.Count); //+2 cause of the manager
             ExtentManager.Remove("non_existing_employees.xml");
         }
 
@@ -41,6 +42,7 @@ namespace G42Warehouse.Tests
                 "Test",
                 DateTime.Now.AddYears(-1),
                 1000,
+                new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                 DriverLicenceType.C);
 
             Assert.Equal(ExperienceLevelType.Junior, emp.ExperienceLevel);
@@ -64,6 +66,7 @@ namespace G42Warehouse.Tests
                 "Test",
                 DateTime.Now.AddYears(-1),
                 1000,
+                new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                 DriverLicenceType.C1,
                 ExperienceLevelType.Senior);
 
@@ -80,6 +83,7 @@ namespace G42Warehouse.Tests
                     "",
                     employmentDate,
                     1500,
+                    new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                     DriverLicenceType.B)
             );
         }
@@ -94,6 +98,7 @@ namespace G42Warehouse.Tests
                     "Test",
                     futureDate,
                     1500,
+                    new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                     DriverLicenceType.B)
             );
         }
@@ -108,6 +113,7 @@ namespace G42Warehouse.Tests
                     "Test",
                     employmentDate,
                     0,
+                    new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                     DriverLicenceType.B)
             );
 
@@ -116,6 +122,7 @@ namespace G42Warehouse.Tests
                     "Test",
                     employmentDate,
                     -10,
+                    new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                     DriverLicenceType.B)
             );
         }
@@ -130,6 +137,7 @@ namespace G42Warehouse.Tests
                 "Test",
                 employmentDate,
                 1000,
+                new HashSet<WarehouseManager> { new WarehouseManager("asdasd", DateTime.Now, 25) },
                 DriverLicenceType.B);
 
             int years = emp.YearsSinceEmployment;
@@ -147,16 +155,18 @@ namespace G42Warehouse.Tests
             {
                 ExtentManager.Load(path);
 
-                var e1 = new DeliveryDriver(
-                    "Alice",
-                    DateTime.Now.AddYears(-1),
-                    1500,
-                    DriverLicenceType.B);
 
                 var e2 = new WarehouseManager(
                     "Bob",
                     DateTime.Now.AddYears(-2),
                     2000);
+
+                var e1 = new DeliveryDriver(
+                    "Alice",
+                    DateTime.Now.AddYears(-1),
+                    1500,
+                    new HashSet<WarehouseManager> { e2 },
+                    DriverLicenceType.B);
 
                 ExtentManager.Save(path);
 

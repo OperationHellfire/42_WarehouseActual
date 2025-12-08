@@ -19,6 +19,11 @@ namespace G42Warehouse
         [DataMember]
         private List<Shelf> _consistingshelves = new List<Shelf>();
 
+        [DataMember]
+        private HashSet<Item> _items = [];
+
+        public HashSet<Item> Items { get { return _items; } }
+
         public IReadOnlyList<Shelf> ConsistingShelves
         {
             get => _consistingshelves.AsReadOnly();
@@ -49,14 +54,20 @@ namespace G42Warehouse
         }
 
         [DataMember]
-        private Dictionary<Item, int> _inventory = new();
+        private Section _containingSection;
 
-        public Dictionary<Item, int> Inventory { get => _inventory; }
+        public Section ContainingSection
+        {
+            get => _containingSection;
+            private set => _containingSection = value;
+        }
 
-        public Shelf(ShelfType type, double maximumweight)
+
+        public Shelf(ShelfType type, double maximumweight, Section containingSection)
         {
             TypeOfShelf = type;
             MaximumWeightCapacity = maximumweight;
+            ContainingSection = containingSection;
             addShelf(this);
         }
 
@@ -67,7 +78,12 @@ namespace G42Warehouse
             {
                 throw new ArgumentNullException("Target shelf is null");
             }
-            _consistingshelves.Add(shelf);
+            
+            if(!ConsistingShelves.Contains(shelf))
+            {
+                _consistingshelves.Add(shelf);
+                if (!shelf.ConsistingShelves.Contains(this)) shelf.addConsisting(this);
+            }
         }
 
         public void removeConsisting(Shelf shelf)
@@ -76,7 +92,12 @@ namespace G42Warehouse
             {
                 throw new ArgumentNullException("Target shelf is null");
             }
-            _consistingshelves.Remove(shelf);
+
+            if(ConsistingShelves.Contains(shelf))
+            {
+                _consistingshelves.Remove(shelf);
+                if(shelf.ConsistingShelves.Contains(this)) shelf.removeConsisting(this);    
+            }
         }
         private static void addShelf(Shelf shelf)
         {
@@ -87,73 +108,38 @@ namespace G42Warehouse
             ExtentManager.Instance.ExtentShelf.Add(shelf);
         }
 
-        /*public void addItem(Item item, int amount = 1)
+        public void addItem(Item item, int placementLevel)
+        {
+            if(item == null)
+            {
+                throw new ArgumentNullException("Target item is null");
+            }
+            
+            
+            if(item.PlacementInf.Shelf != null && item.PlacementInf.Shelf != this)
+            {
+                throw new ArgumentException("Target item is already assigned to a different shelf.");
+            }
+
+            if(!Items.Contains(item)) {
+                Items.Add(item);
+                item.selectShelf(this,placementLevel);
+            }
+        }
+
+        public void removeItem(Item item)
         {
             if (item == null)
             {
-                throw new ArgumentException("Item is null.");
+                throw new ArgumentNullException("Target item is null");
             }
 
-            if(amount < 0)
+            if (Items.Contains(item))
             {
-                throw new ArgumentException("Amount added can't be negative.");
+                Items.Remove(item);
+                item.removeFromShelf();
             }
-
-            if (item.ShelfTracker == item.Stock)
-            {
-                throw new ArgumentException("All of the items are already located in shelves. Please increase stock of item or relocate existing items.");
-            }
-
-            if (amount < 1 || amount > item.Stock)
-            {
-                throw new ArgumentException("There's not enough stock of this item to add in that amount: " + " Item stock: " + item.Stock);
-            }
-
-            if (item.ShelfTracker + amount > item.Stock)
-            {
-                throw new ArgumentException("Amount of items currently present in all shelves exceed current stock, please increase stock of item or relocate existing items.");
-            }
-
-            item.ShelfTracker += amount;
-
-            Inventory[item] = Inventory.GetValueOrDefault(item, 0) + amount;
-        }*/
-
-        /* public void removeItem(Item item, int amount = 1)
-         {
-             if (item == null)
-             {
-                 throw new ArgumentException("Item is null.");
-             }
-
-             if (amount < 0)
-             {
-                 throw new ArgumentException("Amount removed can't be negative.");
-             }
-
-             if(amount < item.Stock)
-             {
-                 throw new ArgumentException("There's not enough stock of this item to remove in that amount: " + " Item stock: " + item.Stock);
-             }
-
-             if (item.ShelfTracker == 0)
-             {
-                 throw new ArgumentException("This item is currently not present on any shelves, cannot remove.");
-             }
-
-             if (item.ShelfTracker - amount < 0)
-             {
-                 throw new ArgumentException("The amount given to remove exceeds the amount present on all shelves, cannot remove.");
-             }
-
-             if (!Inventory.ContainsKey(item) || Inventory[item] <= 0)
-             {
-                 throw new ArgumentException("You can't remove an item that is not in this shelf.");
-             }
-
-             Inventory[item] -= amount;
-         }*/
-
+        }
 
         public override string ToString()
         {
@@ -163,11 +149,6 @@ namespace G42Warehouse
                 a += shelf.TypeOfShelf + " ";
             }
 
-            /*string b = string.Empty;
-            foreach(var item in Inventory)
-            {
-                b += item.Key.Name + " amount: " + item.Value + " | ";
-            }*/
             return $"Type: {TypeOfShelf} Maximum Weight: {MaximumWeightCapacity} Consisting Shelves: {a}"; //" Current Inventory: {b}";
         }
 

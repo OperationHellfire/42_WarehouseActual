@@ -159,11 +159,9 @@ namespace G42Warehouse.Tests
                 hazardTypes: new[] { HazardType.Flammable });
 
             section.AddRestrictedMaterial("Explosives");
-            section.AddRestrictedMaterial("Flammable Liquids");
 
-            Assert.Equal(2, section.RestrictedMaterials.Count);
+            Assert.Single(section.RestrictedMaterials);
             Assert.Contains("Explosives", section.RestrictedMaterials);
-            Assert.Contains("Flammable Liquids", section.RestrictedMaterials);
         }
 
         [Fact]

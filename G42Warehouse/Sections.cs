@@ -116,7 +116,7 @@ namespace G42Warehouse
             if (string.IsNullOrWhiteSpace(material))
                 throw new ArgumentException("Material cannot be empty.");
 
-            (_restrictedMaterials ??= new List<string>()).Add(material);
+            _restrictedMaterials.Add(material);
         }
 
         public static int MaxSections { get; set; } = 200;
@@ -126,6 +126,19 @@ namespace G42Warehouse
 
         [DataMember]
         public SectionStatus Status { get; set; }
+
+        [DataMember]
+        private HashSet<Shelf> _shelves;
+
+        public HashSet<Shelf> Shelves
+        {
+            get => _shelves;
+            private set
+            {
+                if (value.Count == 0) throw new ArgumentException("There must be at least one shelf present in this set!");
+                _shelves = value;
+            }
+        }
 
         protected Section(
             string name,
@@ -146,6 +159,30 @@ namespace G42Warehouse
         protected Section()
         {
         }
+
+        public void addShelf(Shelf shelf)
+        {
+            if (shelf == null) throw new ArgumentNullException("Target shelf is null!!");
+
+            if (!Shelves.Contains(shelf))
+            {
+                Shelves.Add(shelf);
+                //reverse from composition
+            }
+        }
+
+        public void removeShelf(Shelf shelf)
+        {
+            if (shelf == null) throw new ArgumentNullException("Target shelf is null!!");
+
+            if (Shelves.Count <= 1) throw new ArgumentException("There must be at least one shelf present in this section!");
+
+            if (Shelves.Contains(shelf))
+            {
+                Shelves.Remove(shelf);
+                ExtentManager.Instance.ExtentShelf.Remove(shelf);
+            }
+        }       
     }
 
     [DataContract]
@@ -168,7 +205,7 @@ namespace G42Warehouse
             IEnumerable<HazardType> hazardTypes,
             bool? hasVentilationSystem = null,
             SectionStatus status = SectionStatus.Active)
-            : base(name, location, area, hasBackupGenerator, status)
+            : base(name, location, area, hasBackupGenerator,status)
         {
             if (hazardTypes == null)
                 throw new ArgumentNullException(nameof(hazardTypes));
@@ -225,7 +262,7 @@ namespace G42Warehouse
             double minOperationalTemperature,
             double maxOperationalTemperature,
             SectionStatus status = SectionStatus.Active)
-            : base(name, location, area, hasBackupGenerator, status)
+            : base(name, location, area, hasBackupGenerator,status)
         {
             MinOperationalTemperature = minOperationalTemperature;
             MaxOperationalTemperature = maxOperationalTemperature;

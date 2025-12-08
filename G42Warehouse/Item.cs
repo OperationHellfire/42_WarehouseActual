@@ -126,13 +126,35 @@ namespace G42Warehouse
                 _sellingprice = value;
             }
         }
-        /*[DataMember]
-        private int _shelftracker;
-        public int ShelfTracker
+
+        [DataMember]
+        private Placement _placement;
+
+        public Placement PlacementInf
         {
-            get => _shelftracker;
-            set => _shelftracker = value;
-        }*/
+            get => _placement;
+            private set => _placement = value;
+        }
+
+        [DataMember]
+
+        private Order? _order;
+
+        public Order? ItemOrder
+        {
+            get => _order;
+            private set => _order = value;
+        }
+
+        [DataMember]
+
+        private Machine? _machine;
+
+        public Machine? CarryingMachine
+        {
+            get => _machine;
+            private set => _machine = value;
+        }
 
         [DataMember(IsRequired = false)]
         private ItemHazardType? _hazardtype;
@@ -190,7 +212,9 @@ namespace G42Warehouse
             Weight = weight;
             BuyingPrice = buyingprice;
             SellingPrice = sellingprice;
-            //ShelfTracker = 0;
+            PlacementInf = new Placement();
+            ItemOrder = null;
+            CarryingMachine = null;
             addextent(this);
         }
 
@@ -206,6 +230,131 @@ namespace G42Warehouse
         {
             return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{HazardType}\n Biological Hazard:{BiologicalHazardType} \n Flamm Level: {FlammabilityLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n]";
 
+        }
+
+        //SHELF RELATION
+
+        public void selectShelf(Shelf shelf, int placementLevel)
+        {
+            if (shelf == null)
+            {
+                throw new ArgumentNullException("Target shelf is null");
+            }
+
+            if (PlacementInf.Shelf == shelf) return;
+
+
+            if (PlacementInf.Shelf != null)
+            {
+                throw new ArgumentException("This item is already assigned to a shelf.");
+            }
+
+            PlacementInf.setShelf(shelf);
+            PlacementInf.ShelfLevel = placementLevel;
+            shelf.addItem(this, placementLevel);
+        }
+
+        public void removeFromShelf() //remove from the shelf, not from the item. In the case you want to use this individually, you'll have to deal with the exception!
+        {
+            if(PlacementInf.Shelf == null)
+            {
+                throw new ArgumentNullException("This item doesn't have a shelf assigned to it.");
+            }
+            Shelf shlf = PlacementInf.Shelf;
+            PlacementInf = new Placement();
+            shlf.removeItem(this);
+        }
+
+        //ORDER RELATION
+
+        public void selectOrder(Order order) //This should never be called individually, only Order addItem should be called if an order needs an item added.
+        {
+            if (order == null)
+            {
+                throw new ArgumentNullException("Target order is null!");
+            }
+
+            if(ItemOrder != null)
+            {
+                throw new ArgumentException("This item is already assigned to a different order.");
+            }
+            ItemOrder = order;
+            order.addItem(this);
+        }
+
+        public void removeOrder() //same with this
+        {
+            if (ItemOrder == null) throw new ArgumentNullException("There is no assigned order.");
+            ItemOrder.removeItem(this);
+            ItemOrder = null;
+        }
+
+        public void setMachine(Machine mach) //same with this
+        {
+            if(mach == null)
+            {
+                throw new ArgumentNullException("Target machine is null.");
+            }
+
+            if(CarryingMachine != null)
+            {
+                throw new ArgumentException("This item is already assigned to a different order.");
+            }
+
+            CarryingMachine = mach;
+            mach.addItem(this);
+        }
+
+        public void removeMachine()
+        {
+            CarryingMachine = null;
+        }
+
+
+        //PLACEMENT INFO
+        [DataContract]
+        public class Placement
+        {
+            private Shelf? _shelf;
+            public Shelf? Shelf
+            {
+                get => _shelf;
+            }
+
+            private int? _shelfLevel;
+            public int? ShelfLevel
+            {
+                get => _shelfLevel;
+                set
+                {
+                    if (value < 0)
+                    {
+                        throw new ArgumentOutOfRangeException("Value can't be smaller than 0");
+                    }
+                    _shelfLevel = value;
+                }
+            }
+
+            public Placement()
+            {
+                ShelfLevel = null;
+                _shelf = null;
+            }
+
+            public Placement(Shelf? shelf,int placement)
+            {
+                _shelf = shelf;
+                ShelfLevel = placement;
+            }
+
+            internal void setShelf(Shelf shelf)
+            {
+                if (shelf == null)
+                {
+                    throw new ArgumentNullException("Shelf is nulL!");
+                }
+                _shelf = shelf;
+            }
         }
     }
 

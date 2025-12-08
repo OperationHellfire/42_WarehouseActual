@@ -57,6 +57,16 @@ namespace G42Warehouse
             }
         }
 
+        [DataMember]
+        private HashSet<Order> _orders = [];
+
+        public HashSet<Order> Orders
+        {
+            get => _orders;
+            private set => _orders = value;
+        }
+
+
         public Customer(string name, string telnumber, string email)
         {
             Name = name;
@@ -72,6 +82,20 @@ namespace G42Warehouse
                 throw new ArgumentNullException("Customer is null.");
             }
             ExtentManager.Instance.ExtentCustomer.Add(customer);
+        }
+
+        public void addOrder(Order order)
+        {
+            if(order == null)
+            {
+                throw new ArgumentNullException("Target order is null.");
+            }
+
+            if (!Orders.Contains(order))
+            {
+                Orders.Add(order);
+                //The caller is going to be the Customer anyways, an order can't be created without a customer. Reverse connection is set like this
+            }
         }
     }
 }
