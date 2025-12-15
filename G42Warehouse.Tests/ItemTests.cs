@@ -33,13 +33,13 @@ namespace G42Warehouse.Tests
             Assert.Equal("Pencil", item.Name);
             Assert.False(item.Fragile);
             Assert.Equal(ItemCategory.RawMaterial, item.Category);
-            Assert.Null(item.HazardType);
+            Assert.Null(item.ChemItemHazardType);
 
             Assert.Equal(10, item.StockQuantity);
             Assert.Equal(0.5, item.Weight);
             Assert.Equal(1.0, item.BuyingPrice);
             Assert.Equal(2.0, item.SellingPrice);
-            Assert.Equal(2, item.FlammabilityLevel);
+            Assert.Equal(2, item.FlammLevel);
 
             Assert.Contains(item, items);
             Assert.Equal(beforeCount + 1, items.Count);

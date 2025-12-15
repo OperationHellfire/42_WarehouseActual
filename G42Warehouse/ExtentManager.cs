@@ -130,7 +130,7 @@ namespace G42Warehouse
             }
         }
 
-        public static bool Remove(string path = "ExtentTest.xml")
+        public static bool Remove(string path = "Extent.xml")
         {
             if (!path.Contains(".xml")) { return false;  }; 
             if (!File.Exists(path)) { return false; }

@@ -33,9 +33,21 @@ namespace G42Warehouse
         BiologicalFluid = 3,
         Waste = 4
     }
+
+    public interface ChemicallyHazardousItem
+    {
+        public ItemHazardType? ChemItemHazardType { get; set; }
+        public int? FlammLevel { get; set; }
+    }
+
+    public interface BiologicallyHazardousItem
+    {
+        public BiologicalHazardType? BioHazardType { get; set; }
+    }
+
     [DataContract]
     [KnownType(typeof(PerishableItem))]
-    public class Item
+    public class Item : ChemicallyHazardousItem, BiologicallyHazardousItem
     {
         [DataMember]
         private static int IDTracker = 0;
@@ -163,7 +175,7 @@ namespace G42Warehouse
             private set => _machine = value;
         }
 
-        [DataMember(IsRequired = false)]
+        /*[DataMember(IsRequired = false)]
         private ItemHazardType? _hazardtype;
 
         public ItemHazardType? HazardType
@@ -185,21 +197,36 @@ namespace G42Warehouse
                 }
                 _flammabilityLevel = value;
             }
-        }
-
-        [DataMember(IsRequired = false)]
-        private BiologicalHazardType? _biohazardType;
-
-        public BiologicalHazardType? BiologicalHazardType
-        {
-            get => _biohazardType;
-            set => _biohazardType = value;
-        }
+        }*/
 
         [DataMember]
         private static Dictionary<int, int> _stockTracker = [];
 
         public static Dictionary<int, int> StockTracker { get => _stockTracker; }
+
+        //interfaces
+
+        [DataMember(IsRequired = false)]
+        public ItemHazardType? ChemItemHazardType { get; set; }
+
+        [DataMember(IsRequired = false)]
+        private int? _flammLevel { get; set; }
+
+        public int? FlammLevel
+        {
+            get => _flammLevel;
+            set
+            {
+                if (value < 0 || value > 4)
+                {
+                    throw new ArgumentOutOfRangeException("Flammability level out of range");
+                }
+                _flammLevel = value;
+            }
+        }
+
+        [DataMember(IsRequired = false)]
+        public BiologicalHazardType? BioHazardType { get; set; }
 
         /*[DataMember]
         private static Dictionary<int, int> _shelfTracker = [];
@@ -223,9 +250,9 @@ namespace G42Warehouse
             Name = name;
             Fragile = fragile;
             Category = category;
-            HazardType = hazard;
-            BiologicalHazardType = biohazard;
-            FlammabilityLevel = flamm;
+            ChemItemHazardType = hazard;
+            BioHazardType = biohazard;
+            FlammLevel = flamm;
             StockQuantity = initialstock;
             Weight = weight;
             BuyingPrice = buyingprice;
@@ -252,7 +279,7 @@ namespace G42Warehouse
         }
         public override string ToString()
         {
-            return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{HazardType}\n Biological Hazard:{BiologicalHazardType} \n Flamm Level: {FlammabilityLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n]";
+            return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{ChemItemHazardType}\n Biological Hazard:{BioHazardType} \n Flamm Level: {FlammLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n]";
 
         }
 

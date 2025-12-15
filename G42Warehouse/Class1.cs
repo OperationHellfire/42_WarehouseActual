@@ -10,6 +10,7 @@ namespace G42Warehouse
     {
         public static void Main(string[] args)
         {
+            ExtentManager.Remove();
             Worker john = new Worker("John",DateTime.Now,1000.0,new HashSet<WarehouseManager> { new WarehouseManager("asdasd",DateTime.Now,25)});
             Shelf shelf = new Shelf(ShelfType.Pallet_Rack, 50.5, new RefrigeratedSection(
                     "Sec1",
@@ -19,17 +20,10 @@ namespace G42Warehouse
                     minOperationalTemperature: -10,
                     maxOperationalTemperature: 5)
             );
-            Item item = new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25);
+            Item item = new Item(null, "Pen", false, ItemCategory.RawMaterial, ItemHazardType.Toxins, null, 3, 0, 25, 25, 25);
             
-            PerishableItem itemPerish = new PerishableItem(null, "Frozen Pen", false, ItemCategory.RawMaterial, null, null, null, DateTime.Now.Add(new TimeSpan(36, 0, 0, 0)), -25, 0, 25, 25, 25);
-
-            item.selectShelf(shelf,0);
-            shelf.addItem(itemPerish,0);
-            Console.WriteLine("Shelf: " + shelf.Items.ToString());
-            Console.WriteLine("Item #1: " + item.PlacementInf.Shelf.ToString());
-            Console.WriteLine("Item #2: " + itemPerish.PlacementInf.Shelf.ToString());
-            shelf.removeItem(itemPerish);   
-            shelf.removeItem(item);
+            PerishableItem itemPerish = new PerishableItem(null, "Frozen Pen", false, ItemCategory.RawMaterial, null, null, 3, DateTime.Now.Add(new TimeSpan(36, 0, 0, 0)), -25, 0, 25, 25, 25);
+            ExtentManager.Save();
         }
     }
 }
