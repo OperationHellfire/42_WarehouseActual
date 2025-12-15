@@ -258,7 +258,7 @@ namespace G42Warehouse.Tests
             var op = CreateOperator("Op", new HashSet<WarehouseManager> { manager },
                 new HashSet<Machine> { machine }, new Dictionary<string, Machine> { { "K1", machine } });
 
-            op.removeControlledMachine("K1", machine);
+            op.removeControlledMachine("K1");
 
             Assert.False(op.ControlledMachines.ContainsKey("K1"));
             Assert.DoesNotContain(op, machine.ControlOperators);
@@ -273,7 +273,7 @@ namespace G42Warehouse.Tests
             var op = CreateOperator("Op", new HashSet<WarehouseManager> { manager },
                 new HashSet<Machine> { machine }, new Dictionary<string, Machine> { { "OLD", machine } });
 
-            op.removeControlledMachine("OLD", machine);
+            op.removeControlledMachine("OLD");
             op.addControlledMachine("NEW", machine);
 
             Assert.True(op.ControlledMachines.ContainsKey("NEW"));
@@ -354,15 +354,15 @@ namespace G42Warehouse.Tests
             var manager = CreateManager();
             var managers = new HashSet<WarehouseManager> { manager };
             var driver = new DeliveryDriver("D1", DateTime.Now, 1, managers, DriverLicenceType.B);
-             
+
             var customer = new Customer("C", "1", "e");
             var item = CreateItem();
-             
-            var order = new Order(DateTime.Now, customer, new Dictionary<Item, int>{{item, 1}});
+
+            var order = new Order(DateTime.Now, customer, new Dictionary<Item, int> { { item, 1 } });
             SetPrivateField(item, "_order", order);
 
             var drivers = new HashSet<DeliveryDriver> { new DeliveryDriver("D2", DateTime.Now, 1, managers, DriverLicenceType.B) };
-            var delivery = new Delivery(1, DateTime.Now, DeliveryStatus.Pending, new Address("B","S","C","Co","00"), null, DateTime.Now, order, drivers);
+            var delivery = new Delivery(1, DateTime.Now, DeliveryStatus.Pending, new Address("B", "S", "C", "Co", "00"), null, DateTime.Now, order, drivers);
 
             delivery.addDeliveryDriver(driver);
 
@@ -383,5 +383,36 @@ namespace G42Warehouse.Tests
             shelf.removeItem(item);
             Assert.Null(item.PlacementInf.Shelf);
         }
+
+        [Fact]
+        public void AssociationClass_Shift_HandlesDatesIntoFuture()
+        {
+            var emp = CreateManager();
+            var section = CreateSection();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => new Shift(DateTime.Now.AddYears(-5), DateTime.Now, emp, section));
+        }
+
+        [Fact]
+        public void AssociationClass_Shift_HandlesDatesIntoFuture2()
+        {
+            var emp = CreateManager();
+            var section = CreateSection();
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => new Shift(DateTime.Now, DateTime.Now.AddYears(-5), emp, section));
+        }
+
+        [Fact]
+        public void AssociationClass_Shift_TimeCollision()
+        {
+            var emp = CreateManager();
+            var section = CreateSection();
+
+            Shift sh1 = new Shift(DateTime.Now.AddMinutes(5), DateTime.Now.AddHours(5), emp, section);
+
+            Assert.Throws<ArgumentException>(() => new Shift(DateTime.Now.AddHours(1), DateTime.Now.AddHours(3), emp, section));
+        }
+
+
     }
 }

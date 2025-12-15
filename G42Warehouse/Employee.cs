@@ -365,12 +365,12 @@ namespace G42Warehouse
             }
         }
 
-        public void removeControlledMachine(String serial_code, Machine mach)
+        public void removeControlledMachine(String serial_code)
         {
-            if (mach == null) throw new ArgumentNullException("Target machine is null!");
 
             if (ControlledMachines.ContainsKey(serial_code))
             {
+                Machine mach = ControlledMachines[serial_code];
                 ControlledMachines.Remove(serial_code);
                 mach.removeControlOperator(this);
             }

@@ -60,10 +60,11 @@ namespace G42Warehouse
             private set => _assignedSection = value;
         }
 
-        public Shift(DateTime start, DateTime end)
+        public Shift(DateTime start, DateTime end, Employee emp, Section sec)
         {
             ShiftStart = start;
             ShiftEnd = end;
+            connectShift(emp, sec);
             addExtent(this);
         }
 

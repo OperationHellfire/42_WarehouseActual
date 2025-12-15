@@ -78,6 +78,11 @@ namespace G42Warehouse
             {
                 throw new ArgumentNullException("Target shelf is null");
             }
+
+            if(shelf==this)
+            {
+                throw new ArgumentException("The same shelf can't contain itself");
+            }
             
             if(!ConsistingShelves.Contains(shelf))
             {
