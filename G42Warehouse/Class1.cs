@@ -19,8 +19,9 @@ namespace G42Warehouse
                     minOperationalTemperature: -10,
                     maxOperationalTemperature: 5)
             );
-            Item item = new Item("Pen", false, ItemCategory.RawMaterial, null, null, null,0,25,25,25);
-            PerishableItem itemPerish = new PerishableItem("Frozen Pen", false, ItemCategory.RawMaterial, null, null, null, DateTime.Now.Add(new TimeSpan(36,0,0,0)),-25,0, 25, 25, 25);
+            Item item = new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25);
+            
+            PerishableItem itemPerish = new PerishableItem(null, "Frozen Pen", false, ItemCategory.RawMaterial, null, null, null, DateTime.Now.Add(new TimeSpan(36, 0, 0, 0)), -25, 0, 25, 25, 25);
 
             item.selectShelf(shelf,0);
             shelf.addItem(itemPerish,0);

@@ -32,7 +32,7 @@ namespace G42Warehouse.Tests
             var expected = DateTime.Now.AddHours(3);
             var actual = DateTime.Now; // <= Now inside setter
             Dictionary<Item, int> aee = new Dictionary<Item, int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             var delivery = new Delivery(
                 trackingNumber: 123,
@@ -61,7 +61,7 @@ namespace G42Warehouse.Tests
             var now = DateTime.Now;
 
             Dictionary<Item, int> aee = new Dictionary<Item, int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             Assert.Throws<ArgumentException>(() =>
                 new Delivery(
@@ -81,7 +81,7 @@ namespace G42Warehouse.Tests
             var address = CreateAddress();
 
             Dictionary<Item, int> aee = new Dictionary<Item, int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             var delivery = new Delivery(
                 trackingNumber: 1,
@@ -105,7 +105,7 @@ namespace G42Warehouse.Tests
             var address = CreateAddress();
 
             Dictionary<Item, int> aee = new Dictionary<Item, int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             var delivery = new Delivery(
                 trackingNumber: 1,
@@ -131,7 +131,7 @@ namespace G42Warehouse.Tests
             var futureActual = DateTime.Now.AddDays(1);
 
             Dictionary<Item, int> aee = new Dictionary<Item, int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             Assert.Throws<ArgumentException>(() =>
                 new Delivery(

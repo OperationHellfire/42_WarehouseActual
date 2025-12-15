@@ -124,7 +124,7 @@ namespace G42Warehouse
 
             if (Item.StockTracker[itemid] <= 0 )
             {
-                throw new ArgumentException($"Every instance of {itemid} is already in shelves. Amount(Stock) = {Item.StockTracker[itemid]} Amount(Shelf) = {Item.ShelfTracker[itemid]}. Take out existing items or add more.");
+                throw new ArgumentException($"Every instance of {itemid} is already in shelves. Amount(Stock) = {Item.StockTracker[itemid]}. Take out existing items or add more.");
             }
 
             if(!Items.Contains(item)) {

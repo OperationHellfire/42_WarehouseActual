@@ -19,7 +19,7 @@ namespace G42Warehouse.Tests
 
             var orderDate = DateTime.Now.AddMinutes(-5);
             Dictionary<Item,int> aee = new Dictionary<Item,int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             var order = new Order(orderDate,new Customer("J","j","j"), aee);
 
@@ -36,7 +36,7 @@ namespace G42Warehouse.Tests
         public void Order_OrderDate_SetToFuture_ThrowsArgumentException()
         {
             Dictionary<Item, int> aee = new Dictionary<Item, int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             var order = new Order(DateTime.Now, new Customer("J", "j", "j"), aee);
 
@@ -52,7 +52,7 @@ namespace G42Warehouse.Tests
         {
 
             Dictionary<Item, int> aee = new Dictionary<Item, int>();
-            aee.Add(new Item("Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
+            aee.Add(new Item(null, "Pen", false, ItemCategory.RawMaterial, null, null, null, 0, 25, 25, 25), 2);
 
             var order = new Order(DateTime.Now.AddMinutes(-10), new Customer("J", "j", "j"), aee);
             order.PaymentStatus = PaymentStatus.Paid;

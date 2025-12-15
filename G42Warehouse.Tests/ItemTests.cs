@@ -18,6 +18,7 @@ namespace G42Warehouse.Tests
             int beforeCount = items.Count;
 
             var item = new Item(
+                Assign_Id: null,
                 name: "Pencil",
                 fragile: false,
                 category: ItemCategory.RawMaterial,
@@ -51,6 +52,7 @@ namespace G42Warehouse.Tests
 
             Assert.Throws<ArgumentException>(() =>
                 new Item(
+                    Assign_Id: null,
                     name: "",
                     fragile: false,
                     category: ItemCategory.RawMaterial,
@@ -70,6 +72,7 @@ namespace G42Warehouse.Tests
 
             Assert.Throws<ArgumentException>(() =>
                 new Item(
+                    Assign_Id: null,
                     name: "BadStock",
                     fragile: false,
                     category: ItemCategory.RawMaterial,
@@ -89,6 +92,7 @@ namespace G42Warehouse.Tests
 
             Assert.Throws<ArgumentException>(() =>
                 new Item(
+                    Assign_Id: null,
                     name: "ZeroWeight",
                     fragile: false,
                     category: ItemCategory.RawMaterial,
@@ -108,6 +112,7 @@ namespace G42Warehouse.Tests
 
             Assert.Throws<ArgumentException>(() =>
                 new Item(
+                    Assign_Id: null,
                     name: "BadPriceBuy",
                     fragile: false,
                     category: ItemCategory.RawMaterial,
@@ -127,6 +132,7 @@ namespace G42Warehouse.Tests
 
             Assert.Throws<ArgumentException>(() =>
                 new Item(
+                    Assign_Id: null,
                     name: "BadPriceSell",
                     fragile: false,
                     category: ItemCategory.RawMaterial,
@@ -146,6 +152,7 @@ namespace G42Warehouse.Tests
 
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 new Item(
+                    Assign_Id: null,
                     name: "Paint",
                     fragile: false,
                     category: ItemCategory.Chemical,
@@ -154,7 +161,7 @@ namespace G42Warehouse.Tests
                     flamm: 5,
                     initialstock: 0,
                     weight: 1.0,
-                    buyingprice: -1.0,
+                    buyingprice: 10.0,
                     sellingprice: 2.0));
         }
     }

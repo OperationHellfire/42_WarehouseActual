@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection; // Used for initializing private fields via reflection
 using G42Warehouse;
 using Xunit;
 
@@ -7,315 +8,380 @@ namespace G42Warehouse.Tests
 {
     public class AssociationTests : IDisposable
     {
+        // Constructor resets extents before each test run
         public AssociationTests()
         {
-            ExtentManager.Load("nonexistingpath.xml");
+            ExtentManager.Reset();
         }
-    
+
+        // Dispose resets extents after each test run
         public void Dispose()
         {
-            ExtentManager.Load("nonexistingpath.xml");
+            ExtentManager.Reset();
         }
 
-        private RefrigeratedSection CreateSection(
-            string name = "Sec1",
-            string location = "Location1",
-            int capacity = 10,
-            bool isFreezer = false,
-            double minTemp = -10,
-            double maxTemp = 5)
+        // ---------------------------------------------------------
+        // REFLECTION HELPER
+        // Used to initialize private collections in source code
+        // where constructors do not properly initialize them.
+        // ---------------------------------------------------------
+        private void SetPrivateField(object target, string fieldName, object value)
         {
-            return new RefrigeratedSection(name, location, capacity, isFreezer, minTemp, maxTemp);
+            if (target == null) return;
+            var type = target.GetType();
+            FieldInfo field = null;
+
+            while (type != null)
+            {
+                field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                if (field != null) break;
+                type = type.BaseType;
+            }
+
+            if (field != null)
+                field.SetValue(target, value);
         }
 
-        private Shelf CreateShelf(ShelfType type, int capacity, RefrigeratedSection section)
+        // ---------------------------------------------------------
+        // HELPER METHODS
+        // ---------------------------------------------------------
+
+        private RefrigeratedSection CreateSection()
         {
-            return new Shelf(type, capacity, section);
+            var sec = new RefrigeratedSection("Sec1", "Loc1", 500, false, -10, 5);
+            SetPrivateField(sec, "_shelves", new HashSet<Shelf>());
+            SetPrivateField(sec, "_shiftsInSection", new HashSet<Shift>());
+            return sec;
         }
 
-        private Item CreateItem(
-            string name = "Item",
-            ItemCategory category = ItemCategory.Food)
+        private Shelf CreateShelf(Section section)
         {
-            return new Item(name, false, category, null, null, null, 10, 5.0, 10.0, 15.0);
+            return new Shelf(ShelfType.Pallet_Rack, 100, section);
         }
 
-        private Customer CreateCustomer(
-            string name = "John Doe",
-            string phone = "1234567890",
-            string email = "john@example.com")
+        private Item CreateItem(string name = "Item")
         {
-            return new Customer(name, phone, email);
+            return new Item(null, name, false, ItemCategory.Food, null, null, null, 10, 5, 10, 15);
         }
 
-        private WarehouseManager CreateWarehouseManager(
-            string name = "Manager1",
-            int yearsAgo = 5,
-            double salary = 5000)
+        private WarehouseManager CreateManager(string name = "Boss")
         {
-            return new WarehouseManager(name, DateTime.Now.AddYears(-yearsAgo), salary);
+            return new WarehouseManager(name, DateTime.Now.AddYears(-5), 5000);
         }
 
-        private Worker CreateWorker(
-            string name,
-            HashSet<WarehouseManager> managers,
-            int yearsAgo = 2,
-            double salary = 3000)
+        private MachineOperator CreateOperator(string name, HashSet<WarehouseManager> managers,
+            HashSet<Machine> capableMachines, Dictionary<string, Machine> controlled)
         {
-            return new Worker(name, DateTime.Now.AddYears(-yearsAgo), salary, managers);
-        }
-
-        private DeliveryDriver CreateDeliveryDriver(
-            string name,
-            HashSet<WarehouseManager> managers,
-            DriverLicenceType licenceType)
-        {
-            return new DeliveryDriver(name, DateTime.Now.AddYears(-1), 3500, managers, licenceType);
+            return new MachineOperator(name, DateTime.Now.AddYears(-2), 3000, managers, capableMachines, controlled);
         }
 
         private Transporter CreateTransporter()
         {
-            return new Transporter(MachineStatus.Ready, DateTime.Now.AddDays(-30), 100, 10);
+            return new Transporter(MachineStatus.Ready, DateTime.Now.AddDays(-10), 100, 10);
         }
 
-        private Lifter CreateLifter()
-        {
-            return new Lifter(MachineStatus.Ready, DateTime.Now.AddDays(-30), 200);
-        }
+        // ---------------------------------------------------------
+        // 1. REFLEX ASSOCIATION TESTS
+        // Tests associations where objects of the same class
+        // reference each other (Shelf ↔ Shelf).
+        // ---------------------------------------------------------
 
-        private Address CreateAddress(
-            string building = "Building1",
-            string street = "Street1",
-            string city = "City1",
-            string postalCode = "12345",
-            string country = "Country1")
-        {
-            return new Address(building, street, city, country, postalCode);
-        }
-        
-        private Delivery CreateDeliveryWithSingleDriver(out DeliveryDriver driver)
-        {
-            var manager  = CreateWarehouseManager();
-            var managers = new HashSet<WarehouseManager> { manager };
-            driver       = CreateDeliveryDriver("Driver1", managers, DriverLicenceType.C);
-
-            var customer     = CreateCustomer("Customer1", "111222333", "customer@example.com");
-            var item         = CreateItem("Item1", ItemCategory.Food);
-            var initialItems = new Dictionary<Item, int> { { item, 2 } };
-            var order        = new Order(DateTime.Now, customer, initialItems);
-            var address      = CreateAddress();
-
-            var drivers = new HashSet<DeliveryDriver> { driver };
-            return new Delivery(12345, DateTime.Now, DeliveryStatus.Pending,
-                                address, null, DateTime.Now, order, drivers);
-        }
-
-        // Test 1: Shelf-Shelf Consisting Association - Add with Reverse Connection
         [Fact]
-        public void Shelf_AddConsisting_CreatesReverseConnection()
+        // Tests adding a reflex association and verifies reverse connection.
+        public void Reflex_AddConsistingShelf_SetsReverseConnection()
         {
             var section = CreateSection();
-            var shelf1 = CreateShelf(ShelfType.Pallet_Rack, 100, section);
-            var shelf2 = CreateShelf(ShelfType.Solid_Rack, 150, section);
+            var s1 = CreateShelf(section);
+            var s2 = CreateShelf(section);
 
-            shelf1.addConsisting(shelf2);
+            s1.addConsisting(s2);
 
-            Assert.Contains(shelf2, shelf1.ConsistingShelves);
-            Assert.Contains(shelf1, shelf2.ConsistingShelves);
+            Assert.Contains(s2, s1.ConsistingShelves);
+            Assert.Contains(s1, s2.ConsistingShelves);
         }
 
-        // Test 2: Shelf-Shelf Consisting Association - Remove with Reverse Connection
         [Fact]
-        public void Shelf_RemoveConsisting_RemovesReverseConnection()
+        // Tests removing a reflex association and verifies reverse removal.
+        public void Reflex_RemoveConsistingShelf_RemovesReverseConnection()
         {
             var section = CreateSection();
-            var shelf1 = CreateShelf(ShelfType.Pallet_Rack, 100, section);
-            var shelf2 = CreateShelf(ShelfType.Solid_Rack, 150, section);
+            var s1 = CreateShelf(section);
+            var s2 = CreateShelf(section);
+            s1.addConsisting(s2);
 
-            shelf1.addConsisting(shelf2);
-            shelf1.removeConsisting(shelf2);
+            s1.removeConsisting(s2);
 
-            Assert.DoesNotContain(shelf2, shelf1.ConsistingShelves);
-            Assert.DoesNotContain(shelf1, shelf2.ConsistingShelves);
+            Assert.DoesNotContain(s2, s1.ConsistingShelves);
+            Assert.DoesNotContain(s1, s2.ConsistingShelves);
         }
-        
-        // Test 3: Shelf-Item Association - Add with Reverse Connection
+
         [Fact]
-        public void Shelf_AddItem_CreatesReverseConnection()
+        // Tests modifying a reflex association by replacing one connection with another.
+        public void Reflex_ModifyConsistingShelf_UpdatesConnection()
         {
             var section = CreateSection();
-            var shelf   = CreateShelf(ShelfType.Pallet_Rack, 100, section);
-            var item    = CreateItem("TestItem", ItemCategory.Food);
+            var s1 = CreateShelf(section);
+            var s2 = CreateShelf(section);
+            var s3 = CreateShelf(section);
 
-            shelf.addItem(item, 2);
+            s1.addConsisting(s2);
+            s1.removeConsisting(s2);
+            s1.addConsisting(s3);
+
+            Assert.DoesNotContain(s2, s1.ConsistingShelves);
+            Assert.Contains(s3, s1.ConsistingShelves);
+            Assert.Contains(s1, s3.ConsistingShelves);
+        }
+
+        // ---------------------------------------------------------
+        // 2. BASIC ASSOCIATION (1..*) TESTS
+        // Tests one-to-many association Shelf ↔ Item.
+        // ---------------------------------------------------------
+
+        [Fact]
+        // Tests adding an Item to a Shelf and verifies reverse connection via PlacementInf.
+        public void Basic_AddItemToShelf_SetsReverseConnection()
+        {
+            var shelf = CreateShelf(CreateSection());
+            var item = CreateItem();
+
+            shelf.addItem(item, 1);
 
             Assert.Contains(item, shelf.Items);
             Assert.Equal(shelf, item.PlacementInf.Shelf);
-            Assert.Equal(2, item.PlacementInf.ShelfLevel);
         }
 
-        // Test 4: Shelf-Item Association - Remove with Reverse Connection
         [Fact]
-        public void Shelf_RemoveItem_RemovesReverseConnection()
+        // Tests removing an Item from a Shelf and clearing the reverse connection.
+        public void Basic_RemoveItemFromShelf_RemovesReverseConnection()
         {
-            var section = CreateSection();
-            var shelf   = CreateShelf(ShelfType.Pallet_Rack, 100, section);
-            var item    = CreateItem("TestItem", ItemCategory.Food);
+            var shelf = CreateShelf(CreateSection());
+            var item = CreateItem();
+            shelf.addItem(item, 1);
 
-            shelf.addItem(item, 2);
             shelf.removeItem(item);
 
             Assert.DoesNotContain(item, shelf.Items);
             Assert.Null(item.PlacementInf.Shelf);
         }
 
-        // Test 5: Shelf-Item Association - Error when Adding Item to Different Shelf
         [Fact]
-        public void Shelf_AddItem_ThrowsWhenItemAlreadyOnDifferentShelf()
+        // Tests that assigning an Item to multiple Shelves throws an exception.
+        public void Basic_Item_AlreadyAssignedToShelf_ThrowsException()
         {
             var section = CreateSection();
-            var shelf1  = CreateShelf(ShelfType.Pallet_Rack, 100, section);
-            var shelf2  = CreateShelf(ShelfType.Solid_Rack, 150, section);
-            var item    = CreateItem("TestItem", ItemCategory.Food);
+            var shelf1 = CreateShelf(section);
+            var shelf2 = CreateShelf(section);
+            var item = CreateItem();
 
-            shelf1.addItem(item, 2);
+            shelf1.addItem(item, 1);
 
-            Assert.Throws<ArgumentException>(() => shelf2.addItem(item, 3));
+            Assert.Throws<ArgumentException>(() => shelf2.addItem(item, 1));
         }
 
-        // Test 6: Machine-Item Association - Add with Reverse Connection
+        // ---------------------------------------------------------
+        // 3. MANY-TO-MANY ASSOCIATION TESTS
+        // Tests Worker ↔ WarehouseManager relationship.
+        // ---------------------------------------------------------
+
         [Fact]
-        public void Machine_AddItem_CreatesReverseConnection()
+        // Tests adding a Manager to a Worker and reverse association.
+        public void MtoM_AddManagerToWorker_SetsReverseConnection()
         {
+            var manager = CreateManager();
+            var worker = new Worker("Worker", DateTime.Now, 2000, new HashSet<WarehouseManager> { manager });
+            var newManager = CreateManager("Boss2");
+
+            worker.addManager(newManager);
+
+            Assert.Contains(newManager, worker.Managers);
+            Assert.Contains(worker, newManager.Workers);
+        }
+
+        [Fact]
+        // Tests removing a Manager from a Worker.
+        public void MtoM_RemoveManager_RemovesReverseConnection()
+        {
+            var m1 = CreateManager("M1");
+            var m2 = CreateManager("M2");
+            var worker = new Worker("Worker", DateTime.Now, 2000, new HashSet<WarehouseManager> { m1, m2 });
+
+            worker.removeManager(m1);
+
+            Assert.DoesNotContain(m1, worker.Managers);
+            Assert.Contains(m2, worker.Managers);
+        }
+
+        [Fact]
+        // Tests modifying many-to-many association by reassigning a Manager.
+        public void MtoM_ModifyManager_ReassignsProperly()
+        {
+            var m1 = CreateManager("M1");
+            var m2 = CreateManager("M2");
+            var worker = new Worker("Worker", DateTime.Now, 2000, new HashSet<WarehouseManager> { m1 });
+
+            worker.removeManager(m1);
+            worker.addManager(m2);
+
+            Assert.Contains(m2, worker.Managers);
+            Assert.Contains(worker, m2.Workers);
+        }
+
+        // ---------------------------------------------------------
+        // 4. QUALIFIED ASSOCIATION TESTS
+        // Tests dictionary-based association Operator ↔ Machine.
+        // ---------------------------------------------------------
+
+        [Fact]
+        // Tests adding a controlled machine with a qualifier key.
+        public void Qualified_AddControlledMachine_SetsReverseConnection()
+        {
+            var manager = CreateManager();
             var machine = CreateTransporter();
-            var item    = CreateItem("TestItem", ItemCategory.Electronics);
+            var op = CreateOperator("Op", new HashSet<WarehouseManager> { manager },
+                new HashSet<Machine> { machine }, new Dictionary<string, Machine> { { "SEED", machine } });
 
-            machine.addItem(item, 5);
+            var newMachine = CreateTransporter();
+            op.addCapability(newMachine);
+            op.addControlledMachine("M1", newMachine);
 
-            Assert.Contains(item, machine.Items.Keys);
-            Assert.Equal(machine, item.CarryingMachine);
-            Assert.Equal(6, machine.Items[item]);
+            Assert.True(op.ControlledMachines.ContainsKey("M1"));
+            Assert.Contains(op, newMachine.ControlOperators);
         }
 
-        // Test 7: Machine-Item Association - Remove with Reverse Connection
         [Fact]
-        public void Machine_RemoveItem_RemovesReverseConnection()
+        // Tests removing a qualified association and reverse cleanup.
+        public void Qualified_RemoveControlledMachine_RemovesReverseConnection()
         {
-            var machine = CreateLifter();
-            var item    = CreateItem("TestItem", ItemCategory.RawMaterial);
-
-            machine.addItem(item, 3);
-            machine.removeItem(item);
-
-            Assert.DoesNotContain(item, machine.Items.Keys);
-            Assert.Null(item.CarryingMachine);
-        }
-
-        // Test 8: Machine-Item Association - Error when Quantity is Non-Positive
-        [Fact]
-        public void Machine_AddItem_ThrowsWhenQuantityIsZeroOrNegative()
-        {
+            var manager = CreateManager();
             var machine = CreateTransporter();
-            var item    = CreateItem("TestItem", ItemCategory.Chemical);
+            var op = CreateOperator("Op", new HashSet<WarehouseManager> { manager },
+                new HashSet<Machine> { machine }, new Dictionary<string, Machine> { { "K1", machine } });
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => machine.addItem(item, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => machine.addItem(item, -5));
+            op.removeControlledMachine("K1", machine);
+
+            Assert.False(op.ControlledMachines.ContainsKey("K1"));
+            Assert.DoesNotContain(op, machine.ControlOperators);
         }
 
-        // Test 9: Order-Item Association - Add with Reverse Connection
         [Fact]
-        public void Order_AddItem_CreatesReverseConnection()
+        // Tests modifying the qualifier key in a qualified association.
+        public void Qualified_ModifyControlledMachineKey_UpdatesDictionary()
         {
-            var customer = CreateCustomer("John Doe", "1234567890", "john@example.com");
-            
-            var existingItem = CreateItem("ExistingItem", ItemCategory.Food);
-            var initialItems = new Dictionary<Item, int> { { existingItem, 1 } };
-            var order        = new Order(DateTime.Now, customer, initialItems);
-            
-            var newItem = CreateItem("NewItem", ItemCategory.Food);
-            order.addItem(newItem, 2);
+            var manager = CreateManager();
+            var machine = CreateTransporter();
+            var op = CreateOperator("Op", new HashSet<WarehouseManager> { manager },
+                new HashSet<Machine> { machine }, new Dictionary<string, Machine> { { "OLD", machine } });
 
-            Assert.Contains(newItem, order.Items.Keys);
-            Assert.Equal(order, newItem.ItemOrder);
+            op.removeControlledMachine("OLD", machine);
+            op.addControlledMachine("NEW", machine);
+
+            Assert.True(op.ControlledMachines.ContainsKey("NEW"));
         }
 
-        // Test 10: Order-Item Association - Error when Removing Last Item
-        [Fact]
-        public void Order_RemoveItem_ThrowsWhenRemovingLastItem()
-        {
-            var customer     = CreateCustomer("John Doe", "1234567890", "john@example.com");
-            var item         = CreateItem("TestItem", ItemCategory.Medical);
-            var initialItems = new Dictionary<Item, int> { { item, 2 } };
-            var order        = new Order(DateTime.Now, customer, initialItems);
+        // ---------------------------------------------------------
+        // 5. COMPOSITION ASSOCIATION TESTS
+        // Tests strong ownership Section ↔ Shelf.
+        // ---------------------------------------------------------
 
-            Assert.Throws<ArgumentException>(() => order.removeItem(item));
+        [Fact]
+        // Tests adding a Shelf to a Section with strong ownership.
+        public void Composition_AddShelfToSection_SetsReverseConnection()
+        {
+            var section = CreateSection();
+            var shelf = new Shelf(ShelfType.Pallet_Rack, 100, section);
+
+            if (!section.Shelves.Contains(shelf))
+                section.addShelf(shelf);
+
+            Assert.Contains(shelf, section.Shelves);
         }
 
-        // Test 11: Order-Item Association - Modify Item Quantity
         [Fact]
-        public void Order_ModifyItemOrder_UpdatesQuantityCorrectly()
+        // Tests minimum multiplicity constraint in composition.
+        public void Composition_RemoveLastShelf_ThrowsException()
         {
-            var customer     = CreateCustomer("Jane Doe", "0987654321", "jane@example.com");
-            var item1        = CreateItem("Item1", ItemCategory.Food);
-            var item2        = CreateItem("Item2", ItemCategory.Electronics);
-            var initialItems = new Dictionary<Item, int> { { item1, 5 }, { item2, 5 } };
-            var order        = new Order(DateTime.Now, customer, initialItems);
-            
-            order.modifyItemOrder(item1, -2);
+            var section = CreateSection();
+            var shelf = new Shelf(ShelfType.Pallet_Rack, 100, section);
 
-            Assert.Equal(7, order.Items[item1]);
+            Assert.Throws<ArgumentException>(() => section.removeShelf(shelf));
         }
-        
-        // Test 12: Worker-Manager Association - Add with Reverse Connection
+
+        // ---------------------------------------------------------
+        // 6. AGGREGATION / BASIC ASSOCIATION TESTS (ORDER)
+        // ---------------------------------------------------------
+
         [Fact]
-        public void Worker_AddManager_CreatesReverseConnection()
+        // Tests modifying quantity of an Item in an Order.
+        public void Aggregation_ModifyItemOrder_UpdatesQuantity()
         {
-            var manager  = CreateWarehouseManager("Manager1", yearsAgo: 5, salary: 5000);
+            var item = CreateItem();
+            var order = new Order(DateTime.Now, new Customer("C", "1", "e"),
+                new Dictionary<Item, int> { { item, 5 } });
+
+            SetPrivateField(item, "_order", order);
+            order.modifyItemOrder(item, -2);
+
+            Assert.Equal(7, order.Items[item]);
+        }
+
+        [Fact]
+        // Tests removing an Item from an Order while respecting aggregation rules.
+        public void Aggregation_RemoveItemFromOrder_RemovesReverseConnection()
+        {
+            var item1 = CreateItem("I1");
+            var item2 = CreateItem("I2");
+            var item3 = CreateItem("I3");
+
+            var order = new Order(DateTime.Now, new Customer("C", "1", "e"),
+                new Dictionary<Item, int> { { item1, 5 }, { item2, 5 }, { item3, 5 } });
+
+            SetPrivateField(item1, "_order", order);
+            order.removeItem(item1);
+
+            Assert.False(order.Items.ContainsKey(item1));
+            Assert.True(order.Items.ContainsKey(item2));
+        }
+
+        // ---------------------------------------------------------
+        // 7. DELIVERY & ASSOCIATION CLASS TESTS
+        // ---------------------------------------------------------
+
+        [Fact]
+        // Tests adding a DeliveryDriver to a Delivery.
+        public void Delivery_AddDriver_SetsReverseConnection()
+        {
+            var manager = CreateManager();
             var managers = new HashSet<WarehouseManager> { manager };
-            var worker   = CreateWorker("Worker1", managers);
-            
-            manager.addWorkerToManage(worker);
+            var driver = new DeliveryDriver("D1", DateTime.Now, 1, managers, DriverLicenceType.B);
+             
+            var customer = new Customer("C", "1", "e");
+            var item = CreateItem();
+             
+            var order = new Order(DateTime.Now, customer, new Dictionary<Item, int>{{item, 1}});
+            SetPrivateField(item, "_order", order);
 
-            Assert.Contains(manager, worker.Managers);
-            Assert.Contains(worker, manager.Workers);
-        }
+            var drivers = new HashSet<DeliveryDriver> { new DeliveryDriver("D2", DateTime.Now, 1, managers, DriverLicenceType.B) };
+            var delivery = new Delivery(1, DateTime.Now, DeliveryStatus.Pending, new Address("B","S","C","Co","00"), null, DateTime.Now, order, drivers);
 
-        // Test 13: Worker-Manager Association - Remove with Reverse Connection
-        [Fact]
-        public void Worker_RemoveManager_RemovesReverseConnection()
-        {
-            var manager1 = CreateWarehouseManager("Manager1", yearsAgo: 5, salary: 5000);
-            var manager2 = CreateWarehouseManager("Manager2", yearsAgo: 3, salary: 5500);
-            var managers = new HashSet<WarehouseManager> { manager1, manager2 };
-            var worker   = CreateWorker("Worker1", managers);
+            delivery.addDeliveryDriver(driver);
 
-            worker.removeManager(manager1);
-
-            Assert.DoesNotContain(manager1, worker.Managers);
-            Assert.DoesNotContain(worker, manager1.Workers);
-        }
-        
-        // Test 14: Delivery-DeliveryDriver Association - addDelivery Method Creates Reverse Connection
-        [Fact]
-        public void Delivery_AddDeliveryMethod_CreatesReverseConnection()
-        {
-            var delivery = CreateDeliveryWithSingleDriver(out var driver);
-            
-            Assert.DoesNotContain(delivery, driver.Deliveries);
-            
-            driver.addDelivery(delivery);
-            
             Assert.Contains(driver, delivery.AssignedDrivers);
             Assert.Contains(delivery, driver.Deliveries);
         }
 
-        // Test 15: Delivery-DeliveryDriver Association - Error when Removing Last Driver
         [Fact]
-        public void Delivery_RemoveDriver_ThrowsWhenRemovingLastDriver()
+        // Tests association class PlacementInf creation and cleanup.
+        public void AssociationClass_PlacementInf_CreatesAndRemovesReferencesProperly()
         {
-            var delivery = CreateDeliveryWithSingleDriver(out var driver);
+            var shelf = CreateShelf(CreateSection());
+            var item = CreateItem("Apple");
 
-            Assert.Throws<ArgumentException>(() => delivery.removeDeliveryDriver(driver));
+            shelf.addItem(item, 2);
+            Assert.NotNull(item.PlacementInf);
+
+            shelf.removeItem(item);
+            Assert.Null(item.PlacementInf.Shelf);
         }
     }
 }

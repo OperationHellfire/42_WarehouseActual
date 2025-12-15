@@ -412,7 +412,9 @@ namespace G42Warehouse
             set => _storageTemperature = value;
         }
 
-        public PerishableItem(string name,
+        public PerishableItem(
+            int? Assign_Id, 
+            string name,
             bool fragile,
             ItemCategory category,
             ItemHazardType? hazard,
@@ -423,7 +425,8 @@ namespace G42Warehouse
             int initialstock = 0,
             double weight = 1.0,
             double buyingprice = 0,
-            double sellingprice = 0) : base(name, fragile, category, hazard, biohazard, flamm, initialstock, weight, buyingprice)
+            double sellingprice = 0) 
+            : base(Assign_Id, name, fragile, category, hazard, biohazard, flamm, initialstock, weight, buyingprice, sellingprice)
         {
             ExpirationDate = expiration;
             StorageTemperature = storageTemp;
