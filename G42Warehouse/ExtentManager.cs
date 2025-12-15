@@ -70,6 +70,13 @@ namespace G42Warehouse
             get => _extentcustomer;
         }
 
+        [DataMember]
+        private List<Shift> _extentShift = [];
+        public List<Shift> ExtentShift
+        {
+            get => _extentShift;
+        }
+
 
         public static void Save(string path = "Extent.xml")
         {

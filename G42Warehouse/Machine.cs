@@ -104,6 +104,13 @@ namespace G42Warehouse
                 throw new ArgumentOutOfRangeException("Quantity must be positive.");
             }
 
+            int itemid = item.ItemID;
+            int totalquantity = Item.StockTracker[itemid];
+            if (quantity > totalquantity || Items.GetValueOrDefault(item) + quantity > totalquantity)
+            {
+                throw new ArgumentException("There's not enough of this item to add!");
+            }
+
             if (item.CarryingMachine == null) {
                 Items[item] = Items.GetValueOrDefault(item, 1) + quantity;
                 item.setMachine(this);
@@ -156,6 +163,12 @@ namespace G42Warehouse
             }
             else
             {
+                int itemid = item.ItemID;
+                int totalquantity = Item.StockTracker[itemid];
+                if (quantity > totalquantity || Items.GetValueOrDefault(item) + quantity > totalquantity)
+                {
+                    throw new ArgumentException("There's not enough of this item to add!");
+                }
                 Items[item] = Items[item] + quantity;
             }
         }

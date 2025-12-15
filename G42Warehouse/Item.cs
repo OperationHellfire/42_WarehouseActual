@@ -38,6 +38,13 @@ namespace G42Warehouse
     public class Item
     {
         [DataMember]
+        private static int IDTracker = 0;
+
+        [DataMember]
+        private int _id;
+
+        public int ItemID { get => _id; private set => value = _id; }
+        [DataMember]
         private string _name;
         public string Name
         {
@@ -189,9 +196,19 @@ namespace G42Warehouse
             set => _biohazardType = value;
         }
 
+        [DataMember]
+        private static Dictionary<int, int> _stockTracker = [];
+
+        public static Dictionary<int, int> StockTracker { get => _stockTracker; }
+
+        /*[DataMember]
+        private static Dictionary<int, int> _shelfTracker = [];
+
+        public static Dictionary<int, int> ShelfTracker { get => _shelfTracker; }*/
 
 
-        public Item(string name,
+        public Item(int? Assign_Id,
+            string name,
             bool fragile,
             ItemCategory category,
             ItemHazardType? hazard,
@@ -202,6 +219,7 @@ namespace G42Warehouse
             double buyingprice = 0,
             double sellingprice = 0)
         {
+            ItemID = Assign_Id == null ? IDTracker++ : Assign_Id.Value;
             Name = name;
             Fragile = fragile;
             Category = category;
@@ -215,7 +233,13 @@ namespace G42Warehouse
             PlacementInf = new Placement();
             ItemOrder = null;
             CarryingMachine = null;
+            addToStockTrack(ItemID);
             addextent(this);
+        }
+
+        private static void addToStockTrack(int id, int quantity = 1)
+        {
+            StockTracker[id] = StockTracker.GetValueOrDefault(id,0)+quantity;
         }
 
         private static void addextent(Item item)

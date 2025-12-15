@@ -80,6 +80,16 @@ namespace G42Warehouse
         [DataMember]
         public ExperienceLevelType ExperienceLevel { get; set; }
 
+        [DataMember]
+        private HashSet<Shift> _assignedShifts = [];
+
+        public HashSet<Shift> AssignedShifts
+        {
+            get => _assignedShifts;
+        }
+
+
+
         [IgnoreDataMember]
         public int YearsSinceEmployment =>
             (int)((DateTime.Now - EmploymentDate).TotalDays / 365);
@@ -103,6 +113,12 @@ namespace G42Warehouse
 
         protected Employee()
         {
+        }
+
+        public void addShift(Shift shift)
+        {
+            if (shift == null) throw new ArgumentNullException("Shift is null");
+            AssignedShifts.Add(shift);
         }
     }
     

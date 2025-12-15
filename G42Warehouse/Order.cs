@@ -137,7 +137,7 @@ namespace G42Warehouse
             ExtentManager.Instance.ExtentOrder.Add(order);
         }
 
-        public void addItem(Item item,int quantity = 1)
+        public void addItem(Item item,int quantity = 1) // Quantity will be the result of grouping up current items when UI is developed.
         {
             if (item == null) { throw new ArgumentNullException("Target item is null!"); }
 

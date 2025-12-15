@@ -140,6 +140,14 @@ namespace G42Warehouse
             }
         }
 
+        [DataMember]
+        private HashSet<Shift> _shiftsInSection;
+
+        public HashSet<Shift> ShiftsInSection
+        {
+            get => _shiftsInSection;
+        }
+
         protected Section(
             string name,
             string location,
@@ -158,6 +166,12 @@ namespace G42Warehouse
 
         protected Section()
         {
+        }
+
+        public void addShift(Shift shift)
+        {
+            if (shift == null) throw new ArgumentNullException("Shift is null.");
+            ShiftsInSection.Add(shift);
         }
 
         public void addShelf(Shelf shelf)
