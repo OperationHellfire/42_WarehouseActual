@@ -252,7 +252,7 @@ namespace G42Warehouse
         }
         public override string ToString()
         {
-            return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{HazardType}\n Biological Hazard:{BiologicalHazardType} \n Flamm Level: {FlammabilityLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n]";
+            return $"[\n Name: {Name}\n Fragile: {Fragile}\n Category: {Category}\n Hazard Type:{HazardType}\n Biological Hazard:{BiologicalHazardType} \n Flamm Level: {FlammabilityLevel}\n Weight: {Weight}\n Buying Price: {BuyingPrice}\n Selling Price: {SellingPrice}\n PlacementInfo: {PlacementInf.ToString()}\n]";
 
         }
 
@@ -339,12 +339,13 @@ namespace G42Warehouse
         [DataContract]
         public class Placement
         {
+            [DataMember]
             private Shelf? _shelf;
             public Shelf? Shelf
             {
                 get => _shelf;
             }
-
+            [DataMember]
             private int? _shelfLevel;
             public int? ShelfLevel
             {
@@ -378,6 +379,13 @@ namespace G42Warehouse
                     throw new ArgumentNullException("Shelf is nulL!");
                 }
                 _shelf = shelf;
+            }
+
+            public override string ToString()
+            {
+                if(Shelf != null)
+                   return Shelf.TypeOfShelf.ToString() + " " + ShelfLevel.ToString();
+                return "None";
             }
         }
     }

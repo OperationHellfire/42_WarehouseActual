@@ -12,7 +12,7 @@ namespace G42Warehouse
         Pallet_Rack = 0,
         Solid_Rack = 1,
     }
-    [DataContract]
+    [DataContract(IsReference = true)]
     public class Shelf
     {
 
@@ -82,6 +82,11 @@ namespace G42Warehouse
             if(shelf==this)
             {
                 throw new ArgumentException("The same shelf can't contain itself");
+            }
+
+            if(shelf.ContainingSection != this.ContainingSection)
+            {
+                throw new ArgumentException("You cannot group up a shelf that's in a different section!");
             }
             
             if(!ConsistingShelves.Contains(shelf))
@@ -155,6 +160,18 @@ namespace G42Warehouse
             }
         }
 
+        public void removeShelf(Shelf shelf)
+        {
+            if (shelf == null) throw new ArgumentNullException("Target shelf is null!");
+
+            foreach(Item item in Items)
+            {
+                removeItem(item);
+            }
+
+            ExtentManager.Instance.ExtentShelf.Remove(shelf);
+        }
+
         public override string ToString()
         {
             string a = string.Empty;
@@ -163,7 +180,14 @@ namespace G42Warehouse
                 a += shelf.TypeOfShelf + " ";
             }
 
-            return $"Type: {TypeOfShelf} Maximum Weight: {MaximumWeightCapacity} Consisting Shelves: {a}"; //" Current Inventory: {b}";
+            string b = string.Empty;
+
+            foreach (var item  in Items)
+            {
+                b += item.Name + " ";
+            }
+
+            return $"Type: {TypeOfShelf} Maximum Weight: {MaximumWeightCapacity} Consisting Shelves: {a} Current Inventory: {b}";
         }
 
 

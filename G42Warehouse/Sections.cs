@@ -19,7 +19,7 @@ namespace G42Warehouse
         Toxic
     }
 
-    [DataContract]
+    [DataContract(IsReference = true)]
     [KnownType(typeof(HazardousMaterialsSection))]
     [KnownType(typeof(RefrigeratedSection))]
     public abstract class Section
@@ -135,7 +135,7 @@ namespace G42Warehouse
             get => _shelves;
             private set
             {
-                if (value.Count == 0) throw new ArgumentException("There must be at least one shelf present in this set!");
+                //if (value.Count == 0) throw new ArgumentException("There must be at least one shelf present in this set!");
                 _shelves = value;
             }
         }
@@ -160,6 +160,7 @@ namespace G42Warehouse
             Area = area;
             HasBackupGenerator = hasBackupGenerator;
             Status = status;
+            Shelves = [];
 
             AddToExtent(this);
         }
@@ -197,9 +198,22 @@ namespace G42Warehouse
                 ExtentManager.Instance.ExtentShelf.Remove(shelf);
             }
         }       
+
+        public void removeSection(Section sec)
+        {
+            if (sec == null) throw new ArgumentNullException("Target section is null!");
+
+            foreach(Shelf shelf in Shelves)
+            {
+                Shelves.Remove(shelf);
+                shelf.removeShelf(shelf);
+            }
+
+            ExtentManager.Instance.ExtentSection.Remove(sec);
+        }
     }
 
-    [DataContract]
+    [DataContract(IsReference = true)]
     public class HazardousMaterialsSection : Section
     {
         [DataMember]
@@ -236,7 +250,7 @@ namespace G42Warehouse
         }
     }
 
-    [DataContract]
+    [DataContract(IsReference = true)]
     public class RefrigeratedSection : Section
     {
         private double _minOperationalTemperature;

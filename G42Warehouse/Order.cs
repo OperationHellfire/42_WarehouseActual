@@ -242,5 +242,18 @@ namespace G42Warehouse
                 ExtentManager.Instance.ExtentDelivery.Remove(delivery); //A delivery can't live without a parent order
             }
         }
+
+        public void removeOrder(Order order)
+        {
+            if (order == null) throw new ArgumentNullException("Target order is null!");
+
+            foreach(Delivery delivery in Deliveries)
+            {
+                Deliveries.Remove(delivery);
+                delivery.removeDelivery(delivery);
+            }
+
+            ExtentManager.Instance.ExtentOrder.Remove(order);
+        }
     }
 }

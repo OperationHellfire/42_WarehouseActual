@@ -121,6 +121,15 @@ namespace G42Warehouse
             }
         }
 
+        [DataMember]
+        private bool _isDestroyed = false;
+
+        public bool IsDestroyed
+        {
+            get => _isDestroyed;
+            private set => _isDestroyed = value;
+        }
+
 
 
         public Delivery(int trackingNumber, DateTime date,DeliveryStatus status,Address deliveryaddress, DateTime? expected, DateTime actual, Order order, HashSet<DeliveryDriver> drivers) {
@@ -164,9 +173,27 @@ namespace G42Warehouse
                 AssignedDrivers.Remove(driver);
                 driver.removeDelivery(this);
             } else
-            {
-                throw new ArgumentException("Cannot remove the only driver assigned to this delivery.");
+              {
+                if (!IsDestroyed)
+                {
+                    throw new ArgumentException("Cannot remove the only driver assigned to this delivery.");
+                }
+              }
             }
+
+        public void removeDelivery(Delivery delivery)
+        {
+            if (delivery == null) throw new ArgumentNullException("Target delivery is null!");
+
+            AssociatedOrder = null;
+            IsDestroyed = true;
+
+            foreach (DeliveryDriver driver in AssignedDrivers) {
+                driver.removeDelivery(delivery);
+            }
+
+            ExtentManager.Instance.ExtentDelivery.Remove(delivery);
+                
         }
 
     }
